@@ -23,22 +23,24 @@ print("✅ GMM & PCA 모델 로드 완료")
 # ==============================
 test_samples = [
     {
-        "DESC": "A. Normal과 G0 사이 (식단은 괜찮은데 운동 안 하는 중장년)",
-        # 영양소는 Normal에 가깝지만(탄수 58%, 단백 15%), 나이가 많고 운동이 0.0
-        "N_CHO": 290, "N_PROT": 75, "N_FAT": 55, "N_NA": 2100, "N_SUGAR": 50,
-        "HE_BMI": 23.5, "AGE": 52, "PA_AEROBIC": 0.0
+        "DESC": "1. G1 (고단백 헬창) - 30대, 고단백, 운동 필수",
+        "N_CHO": 200, "N_PROT": 120, "N_FAT": 50, "N_NA": 2700, "N_SUGAR": 35,
+        "HE_BMI": 26.0, "AGE": 34, "PA_AEROBIC": 1.0
     },
     {
-        "DESC": "B. G1(헬창)과 G2(시니어) 사이 (운동 열심히 하는 40대 과도기)",
-        # 단백질도 챙기고(19%) 운동도 하지만, 나트륨이 높고 나이가 40대 중반
-        "N_CHO": 250, "N_PROT": 125, "N_FAT": 60, "N_NA": 4500, "N_SUGAR": 45,
-        "HE_BMI": 25.0, "AGE": 40, "PA_AEROBIC": 1.0
+        "DESC": "2. Normal (권장 준수) - 40대, 균형 잡힌 모범생",
+        "N_CHO": 300, "N_PROT": 80, "N_FAT": 60, "N_NA": 2500, "N_SUGAR": 45,
+        "HE_BMI": 22.5, "AGE": 45, "PA_AEROBIC": 1.0
     },
     {
-        "DESC": "C. G0(불균형)와 G2(시니어) 사이 (식단은 최악인데 운동 깔짝 하는 분)",
-        # 나트륨/당류 폭발, 나이 56세, 근데 유산소 운동은 조금 함(0.5)
-        "N_CHO": 400, "N_PROT": 65, "N_FAT": 70, "N_NA": 4200, "N_SUGAR": 80,
-        "HE_BMI": 27.0, "AGE": 56, "PA_AEROBIC": 0.5
+        "DESC": "3. G2 (액티브 시니어) - 50대, 운동은 하나 짜게 먹음",
+        "N_CHO": 350, "N_PROT": 85, "N_FAT": 75, "N_NA": 4300, "N_SUGAR": 80,
+        "HE_BMI": 25.0, "AGE": 55, "PA_AEROBIC": 1.0
+    },
+    {
+        "DESC": "4. G0 (중장년 비활동) - 50대, 운동 안함, 식단 불균형",
+        "N_CHO": 330, "N_PROT": 80, "N_FAT": 70, "N_NA": 3200, "N_SUGAR": 55,
+        "HE_BMI": 24.5, "AGE": 57, "PA_AEROBIC": 0.0
     }
 ]
 
@@ -48,38 +50,55 @@ test_samples = [
 for sample in test_samples:
     print(f"\n🚀 테스트 대상: {sample['DESC']}")
 
-    # 데이터프레임 변환
     df = pd.DataFrame([sample])
-
-    # [🔥 중요] 학습 때와 동일한 Feature Engineering
     total_kcal = (df["N_CHO"] * 4) + (df["N_PROT"] * 4) + (df["N_FAT"] * 9)
     df["CARB_RATIO"] = (df["N_CHO"] * 4) / total_kcal
     df["PROT_RATIO"] = (df["N_PROT"] * 4) / total_kcal
 
-    # 7개 피처만 추출 및 스케일링
     X_input = df[features]
     X_scaled = scaler.transform(X_input)
-
-    # PCA 변환
     X_pca = pca.transform(X_scaled)
 
-    # [Step 1] Normal 체크 (유클리드 거리)
+    # 1. Target(Normal)과의 거리 계산
     dist = np.linalg.norm(X_pca - target_pca, axis=1)[0]
 
-    if dist <= threshold:
-        print(f"   - 결과: [권장 섭취 준수군 (Normal)]")
-        print(f"   - 타겟 거리: {dist:.4f} (기준선: {threshold:.4f} 이하로 합격)")
-    else:
-        # [Step 2] Normal이 아니면 GMM 확률 계산
-        # predict_proba는 [[prob0, prob1, prob2]] 형태의 배열을 반환함
-        probs = gmm.predict_proba(X_pca)[0]
+    # 2. GMM 각 군집별 확률 계산 (Normal 여부 상관없이 무조건 수행)
+    gmm_probs = gmm.predict_proba(X_pca)[0]  # [G0%, G1%, G2%]
 
-        # 확률 순서대로 이름 매칭
-        cluster_map = {0: "G0(중장년 비활동)", 1: "G1(고단백 헬창)", 2: "G2(액티브 시니어)"}
-        best_cluster = np.argmax(probs)  # 가장 확률 높은 인덱스
+    # ==========================================================
+    # [수정된 로직] Normal을 포함한 4개 그룹 통합 확률 계산
+    # ==========================================================
+    # 거리(dist)가 작을수록 Normal 성향 점수가 높게 나오도록 지수 함수 사용
+    # threshold 지점에서 Normal 성향이 적절히 낮아지도록 설계함
+    normal_score = np.exp(-dist / (threshold * 0.5))
 
-        print(f"   - 결과: [{cluster_map[best_cluster]}]")
-        print(f"   - 타겟 거리: {dist:.4f} (기준선: {threshold:.4f} 초과로 불합격)")
-        print(f"   - 상세 확률: G0:{probs[0]:.1%}, G1:{probs[1]:.1%}, G2:{probs[2]:.1%}")
+    # 나머지 GMM 성향들은 (1 - Normal성향) 내에서 비중을 나눔
+    # 이렇게 해야 전체 합이 100%가 됩니다.
+    rem_weight = 1 - (normal_score if normal_score < 0.9 else 0.9)  # 최소 10%는 성향 노출
+    final_g0 = gmm_probs[0] * rem_weight
+    final_g1 = gmm_probs[1] * rem_weight
+    final_g2 = gmm_probs[2] * rem_weight
+
+    # 다시 한번 소프트맥스처럼 합이 1이 되도록 정규화
+    total = normal_score + final_g0 + final_g1 + final_g2
+
+    prob_normal = (normal_score / total)
+    prob_g0 = (final_g0 / total)
+    prob_g1 = (final_g1 / total)
+    prob_g2 = (final_g2 / total)
+
+    # 3. 결과 출력 (이제 IF문 없이 모든 성향을 다 보여줌)
+    print(f"   - [종합 진단 결과]")
+    print(f"     * Normal(권장준수) : {prob_normal:>6.1%}")
+    print(f"     * G0(중장년비활동) : {prob_g0:>6.1%}")
+    print(f"     * G1(고단백헬창)  : {prob_g1:>6.1%}")
+    print(f"     * G2(액티브시니어) : {prob_g2:>6.1%}")
+
+    # 대표 페르소나 결정
+    final_list = [prob_normal, prob_g0, prob_g1, prob_g2]
+    names = ["Normal", "G0(중장년 비활동)", "G1(고단백 헬창)", "G2(액티브 시니어)"]
+    best_idx = np.argmax(final_list)
+
+    print(f"   => 최종 판정: {names[best_idx]} (거리: {dist:.3f})")
 
 print("\n" + "=" * 50 + "\n검증 종료")

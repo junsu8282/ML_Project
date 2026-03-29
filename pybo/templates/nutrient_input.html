@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-wrapper wide">
+    <div class="info-header">
+        <a href="javascript:history.back()" class="back-link">❮ 이전</a>
+        <h1>식습관 분석을 위한 정보 입력</h1>
+        <p class="subtitle">정확한 분석을 위해 다음 정보를 입력해주세요 (2/2)</p>
+    </div>
+
+    <div class="step-container step-2">
+        <div class="step-text-group">
+            <span class="step-text">개인정보</span>
+            <span class="step-text active">영양소 정보</span>
+        </div>
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill"></div>
+        </div>
+    </div>
+
+    <div class="auth-card">
+        <h3>일일 영양소 섭취량</h3>
+        <p class="section-subtitle" style="font-size: 14px; color: #888; margin-top: -20px; margin-bottom: 25px;">평균적인 하루 섭취량을 입력해주세요</p>
+
+        <form id="nutrientForm">
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label>열량 (kcal)</label>
+                    <input type="number" name="calories" placeholder="예: 2000" min="0" required>
+                </div>
+                <div class="input-group">
+                    <label>탄수화물 (g)</label>
+                    <input type="number" name="carbs" placeholder="예: 250" min="0" required>
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label>단백질 (g)</label>
+                    <input type="number" name="protein" placeholder="예: 80" min="0" required>
+                </div>
+                <div class="input-group">
+                    <label>지방 (g)</label>
+                    <input type="number" name="fat" placeholder="예: 60" min="0" required>
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label>당류 (g)</label>
+                    <input type="number" name="sugar" placeholder="예: 50" min="0" required>
+                </div>
+                <div class="input-group">
+                    <label>나트륨 (mg)</label>
+                    <input type="number" name="sodium" placeholder="예: 2000" min="0" required>
+                </div>
+            </div>
+
+            <div class="input-group" style="width: calc(50% - 7.5px);"> <label>식이섬유 (g)</label>
+                <input type="number" name="fiber" placeholder="예: 25" min="0" required>
+            </div>
+
+            <button type="submit" class="submit-btn" style="margin-top: 30px; font-size: 16px;">분석 결과 보기</button>
+        </form>
+    </div>
+</div>
+
+<div class="help-icon">?</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('nutrientForm').onsubmit = async function(e) {
+        e.preventDefault();
+
+        // 1단계 데이터 가져오기 (localStorage)
+        const physicalInfo = JSON.parse(localStorage.getItem('physical_info'));
+
+        // 예외 처리: 만약 1단계 정보가 없다면 1단계로 강제 워프! 👊
+        if (!physicalInfo) {
+            alert("신체 정보가 없습니다. 1단계로 돌아갑니다.");
+            window.location.href = "{{ url_for('main.info_page') }}"; // url_for 사용 권장
+            return;
+        }
+
+        // 2단계 데이터 수집
+        const formData = new FormData(this);
+        const nutrientData = Object.fromEntries(formData.entries());
+
+        // 전체 데이터 통합
+        const finalData = { ...physicalInfo, ...nutrientData };
+
+        // 서버로 전송 (준수님이 만든 API 경로에 맞춰 수정 가능)
+
+        const response = await fetch('/api/save_analysis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(finalData)
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.status === 'success') {
+            // 전송 성공 후 localStorage 초기화 (게임 클리어 후 세이브 데이터 정리)
+            localStorage.removeItem('physical_info');
+            // 서버에서 넘겨준 결과 페이지 URL로 이동
+            window.location.href = result.redirect_url;
+        } else {
+            alert(result.message || "분석 요청 중 오류가 발생했습니다.");
+        }
+
+    };
+</script>
+{% endblock %}

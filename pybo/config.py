@@ -1,7 +1,7 @@
 import os
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-
-SQLALCHEMY_DATABASE_URI = "oracle+oracledb://myml:1234@localhost:1521/xe"
-SQLALCHEMY_TRACK_MODIFICATIONS = False
-SECRET_KEY = "dev"
+class Config:
+    SECRET_KEY = "dev_junsu_key"
+    # oracledb 라이브러리 방식에 맞춘 URI
+    SQLALCHEMY_DATABASE_URI = "oracle+oracledb://myml:1234@localhost:1521/xe"
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
