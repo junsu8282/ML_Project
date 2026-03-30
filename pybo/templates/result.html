@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-wrapper wide" style="padding-bottom: 60px;">
+    <div class="info-header">
+        <a href="{{ url_for('main.info_page') }}">❮ 다시 입력하기</a>
+        <h1>식습관 분석 결과</h1>
+        <p class="subtitle">{{ session.get('user_id', '사용자') }}님의 상세 영양 밸런스 리포트입니다.</p>
+    </div>
+
+    {% set is_normal = result.cluster_id == -1 %}
+    {% set theme_color = '#00C853' if is_normal else '#FF6D00' %}
+
+    <div class="result-type-box" style="background-color: {{ theme_color }}; color: white; border-radius: 12px; padding: 30px; display: flex; align-items: center; margin-bottom: 25px;">
+        <div class="icon-check" style="width: 60px; height: 60px; background-color: white; border-radius: 12px; display: flex; justify-content: center; align-items: center; margin-right: 25px;">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 6L9 17L4 12" stroke="{{ theme_color }}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <div>
+            <div style="font-size: 16px; font-weight: 300; opacity: 0.9;">당신의 식습관 유형</div>
+            <h2 style="font-size: 28px; font-weight: 800; margin: 5px 0 10px 0; color: white;">{{ result.cluster_name }}</h2>
+            <p style="font-size: 14px; font-weight: 300; opacity: 0.9;">
+                {{ "전반적으로 균형 잡힌 식습관을 유지하고 있습니다. 현재 상태를 유지하세요!" if is_normal else "특정 영양소의 불균형이 감지되었습니다. 아래 리포트를 확인하고 식단을 조정해보세요." }}
+            </p>
+        </div>
+    </div>
+
+    <div class="auth-card" style="margin-bottom: 25px;">
+        <h3 style="margin-bottom: 25px;">영양소 섭취 현황</h3>
+        <div style="width: 100%; max-width: 350px; margin: 0 auto 30px auto;">
+            <canvas id="nutritionChart"></canvas>
+        </div>
+
+        <div class="status-list">
+            {# 1. 탄수화물/단백질 비율 (대문자 확인!) #}
+            {% set carb_p = (result.carb_ratio | default(0) * 100) | round | int %}
+            {% set prot_p = (result.prot_ratio | default(0) * 100) | round | int %}
+
+            {# 2. 지방 비율 (나머지 잔여분) #}
+            {% set fat_p = (100 - carb_p - prot_p) if (100 - carb_p - prot_p) > 0 else 0 %}
+
+            {# 3. 나트륨과 당류 (수치가 클 수 있으므로 안전하게 처리) #}
+            {% set na_p = ((result.n_na | default(0)) / 2000 * 100) | round | int %}
+            {% set sugar_p = ((result.n_sugar | default(0)) / 50 * 100) | round | int %}
+
+            {% set nutrients = [
+                {'name': '탄수화물', 'status': '적정' if 45 <= carb_p <= 65 else ('과잉' if carb_p > 65 else '부족'), 'percent': carb_p},
+                {'name': '단백질', 'status': '적정' if 15 <= prot_p <= 35 else ('과잉' if prot_p > 35 else '부족'), 'percent': prot_p},
+                {'name': '지방', 'status': '적정' if 20 <= fat_p <= 30 else ('과잉' if fat_p > 30 else '부족'), 'percent': fat_p},
+                {'name': '당류', 'status': '적정' if sugar_p <= 100 else '과잉', 'percent': sugar_p},
+                {'name': '나트륨', 'status': '적정' if na_p <= 100 else '과잉', 'percent': na_p}
+            ] %}
+
+            {% for item in nutrients %}
+            {% set item_color = '#00C853' if item.status == '적정' else '#FF6D00' %}
+            <div class="status-item" style="margin-bottom: 18px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="font-size: 14px; font-weight: 500;">{{ item.name }}</span>
+                    <span style="font-size: 12px;">
+                        <span style="color: {{ item_color }}; font-weight: 700;">{{ item.status }}</span>
+                        <span style="color: #888;">({{ item.percent }}%)</span>
+                    </span>
+                </div>
+                <div style="width: 100%; height: 8px; background-color: #eee; border-radius: 10px; overflow: hidden;">
+                    <div style="height: 100%; background-color: {{ item_color }}; width: {{ item.percent if item.percent <= 100 else 100 }}%;"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="auth-card" style="margin-bottom: 25px;">
+        <h3>주요 문제점</h3>
+        <div style="display: flex; align-items: center; padding: 15px; background-color: #fff; border: 1px solid #eee; border-radius: 8px;">
+            <span style="color: #ff4d4f; margin-right: 10px;">⚠️</span>
+            <p style="font-size: 14px; color: #555; margin: 0;">
+                {{ "현재 큰 문제는 없으나, 지속적인 관리가 필요합니다." if is_normal else "권장 섭취 범위를 벗어난 영양소가 있습니다. 균형 있는 식단이 필요합니다." }}
+            </p>
+        </div>
+    </div>
+
+    <div class="auth-card" style="margin-bottom: 30px;">
+        <h3>개선 방안</h3>
+        <div class="advice-list">
+            <div style="display: flex; align-items: center; padding: 15px; background-color: #F1FBF7; border-radius: 8px; margin-bottom: 10px;">
+                <span style="color: #00A669; margin-right: 12px;">✔</span>
+                <p style="font-size: 14px; color: #333; margin: 0;">
+                    {{ "현재의 균형 잡힌 식습관을 꾸준히 유지하세요" if is_normal else "부족하거나 과한 영양소 위주로 식단을 재구성해보세요" }}
+                </p>
+            </div>
+            <div style="display: flex; align-items: center; padding: 15px; background-color: #F1FBF7; border-radius: 8px; margin-bottom: 10px;">
+                <span style="color: #00A669; margin-right: 12px;">✔</span>
+                <p style="font-size: 14px; color: #333; margin: 0;">계절별 제철 식재료를 활용하여 다양성 확보</p>
+            </div>
+            <div style="display: flex; align-items: center; padding: 15px; background-color: #F1FBF7; border-radius: 8px;">
+                <span style="color: #00A669; margin-right: 12px;">✔</span>
+                <p style="font-size: 14px; color: #333; margin: 0;">주 3회 이상 규칙적인 운동으로 건강 증진</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="button-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <button onclick="location.href='{{ url_for('main.main_page') }}'" style="padding: 15px; background-color: #4B5563; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">홈으로</button>
+        <button id="saveBtn" style="padding: 15px; background-color: #00A669; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">결과 저장하기</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('nutritionChart').getContext('2d');
+
+    // 1. 숫자로 강제 형변환 (Float 처리)
+    const carbVal = {{ carb_p | default(0) }};
+    const protVal = {{ prot_p | default(0) }};
+    const fatVal = {{ fat_p | default(0) }};
+    const sugarVal = {{ sugar_p | default(0) }};
+    const naVal = {{ na_p | default(0) }};
+
+    // 2. 디버깅: 콘솔에 찍히는 값이 '0'인지 아니면 실제 숫자인지 꼭 확인! 👊
+    console.log("실제 차트 데이터:", {carbVal, protVal, fatVal, sugarVal, naVal});
+
+    new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['탄수화물', '단백질', '지방', '당류', '나트륨'],
+            datasets: [{
+                data: [carbVal, protVal, fatVal, sugarVal, naVal],
+                backgroundColor: 'rgba(0, 200, 83, 0.1)',
+                borderColor: "{{ '#00C853' if result.CLUSTER_ID == -1 else '#FF6D00' }}",
+                borderWidth: 2,
+                pointBackgroundColor: "{{ '#00C853' if result.CLUSTER_ID == -1 else '#FF6D00' }}"
+            }]
+        },
+        options: {
+            scales: {
+                r: {
+                    // 3. 축 범위 설정 (매우 중요!) 👊
+                    // 데이터가 100단위인데 max가 1000이면 원점에 모여 보입니다.
+                    suggestedMin: 0,
+                    suggestedMax: 100,
+                    ticks: { display: false, stepSize: 20 }
+                }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+</script>
+{% endblock %}

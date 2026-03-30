@@ -110,6 +110,7 @@ p.subtitle { font-size: 14px; color: #666; font-weight: 300; }
     background-color: #00A669; transition: 0.3s; margin-top: 10px;
 }
 .submit-btn:hover { background-color: #008f5a; }
+
 .register-btn { background-color: #2F9F72; }
 
 /* 7. 기타 하단 요소 */

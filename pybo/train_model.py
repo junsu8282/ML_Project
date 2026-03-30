@@ -10,41 +10,68 @@ from sklearn.mixture import GaussianMixture
 from sklearn.metrics import silhouette_score  # [복구] 실루엣 점수
 from sklearn.decomposition import PCA
 
-# [Step 0] DB 설정 (기존 설정 유지)
-oracledb.init_oracle_client(lib_dir=r"C:\oraclexe\instantclient_19_25")
-engine = create_engine("oracle+oracledb://myml:1234@localhost:1521/xe")
+# [Step 0] DB 설정 (Thick 모드 유지 👊)
+try:
+    oracledb.init_oracle_client(lib_dir=r"C:\oraclexe\instantclient_19_25")
+except Exception as e:
+    print(f"Oracle Client 확인 필요: {e}")
 
+# 계정명 대문자(MYML)가 안전합니다.
+engine = create_engine("oracle+oracledb://MYML:1234@localhost:1521/xe")
 
 def load_data():
-    query = "SELECT * FROM USER_HEALTH_RAW WHERE N_EN > 0"
+    # 🚨 수정 포인트: 우리가 새로 만든 FEATURES 테이블에서 데이터를 가져옵니다.
+    # 이미 전처리 과정에서 N_EN 등을 필터링해서 넣었으므로 쿼리가 간결해집니다.
+    query = "SELECT * FROM USER_HEALTH_FEATURES"
     df = pd.read_sql(query, con=engine)
     df.columns = df.columns.str.upper()
-    print(f"\n[Step 1] 데이터 로드 완료: {len(df)}건")
+    print(f"\n[Step 1] 새 테이블 데이터 로드 완료: {len(df)}건")
     return df
 
 
 def preprocess_refined(df):
     df_work = df.copy()
-    total_kcal = (df_work["N_CHO"] * 4) + (df_work["N_PROT"] * 4) + (df_work["N_FAT"] * 9)
-    df_work["CARB_RATIO"] = (df_work["N_CHO"] * 4) / total_kcal
-    df_work["PROT_RATIO"] = (df_work["N_PROT"] * 4) / total_kcal
 
+    # 1. 탄/단/지 기반 칼로리 직접 계산 (FEATURES 테이블의 컬럼 사용)
+    # 11g에서 가져온 데이터이므로 컬럼명이 정확히 일치하는지 확인 👊
+    df_work["CALC_KCAL"] = (df_work["N_CHO"] * 4) + (df_work["N_PROT"] * 4) + (df_work["N_FAT"] * 9)
+
+    # 2. 칼로리 대비 영양소 비율 산출
+    df_work = df_work[df_work["CALC_KCAL"] > 0].copy()
+    df_work["CARB_RATIO"] = (df_work["N_CHO"] * 4) / df_work["CALC_KCAL"]
+    df_work["PROT_RATIO"] = (df_work["N_PROT"] * 4) / df_work["CALC_KCAL"]
+
+    # 3. 학습 피처 정의 (FEATURES 테이블 기반)
+    # N_NA, N_SUGAR, HE_BMI 등은 이미 이관할 때 정제했습니다.
     features = ["CARB_RATIO", "PROT_RATIO", "N_NA", "N_SUGAR", "HE_BMI", "AGE", "PA_AEROBIC"]
-    df_clean = df_work.dropna(subset=features).copy()
 
+    # 결측치 제거
+    df_clean = df_work.dropna(subset=features + ['SEX']).copy()
+
+    # 4. 이상치 처리 (FEATURES 테이블 데이터 특성에 맞춰 범위 조정 가능)
     for feat in ["N_NA", "N_SUGAR", "HE_BMI"]:
         q1, q3 = df_clean[feat].quantile([0.01, 0.99])
         df_clean = df_clean[(df_clean[feat] >= q1) & (df_clean[feat] <= q3)]
 
+    # 5. 스케일링
     scaler = StandardScaler()
     x_scaled = scaler.fit_transform(df_clean[features])
 
-    target_raw = np.array([[0.55, 0.15, 2000, 50, 22.0, 45, 1.0]])
-    target_df = pd.DataFrame(target_raw, columns=features)
-    target_scaled = scaler.transform(target_df)
+    # 6. 성별에 따른 타겟 포인트 (남성=1, 여성=2 기준)
+    t_male = [0.55, 0.15, 2000, 50, 23.0, 45, 1.0]
+    t_female = [0.55, 0.15, 2000, 50, 21.5, 45, 1.0]
 
-    print(f"[Step 2] 피처 최적화 및 타겟 설정 완료 (대상: {len(df_clean)}건)")
-    return x_scaled, target_scaled, features, df_clean, scaler
+    t_male_scaled = scaler.transform(pd.DataFrame([t_male], columns=features))[0]
+    t_female_scaled = scaler.transform(pd.DataFrame([t_female], columns=features))[0]
+
+    user_targets_scaled = np.where(
+        df_clean[['SEX']].values == 1,
+        t_male_scaled,
+        t_female_scaled
+    )
+
+    print(f"[Step 2] 전처리 완료 (대상: {len(df_clean)}건)")
+    return x_scaled, user_targets_scaled, features, df_clean, scaler
 
 
 def train_analyze_gmm(df, x_scaled, target_scaled):
@@ -76,7 +103,6 @@ def train_analyze_gmm(df, x_scaled, target_scaled):
     # 최종 모델 학습 (N=3)
     gmm = GaussianMixture(n_components=3, random_state=42, n_init=10)
     labels = gmm.fit_predict(x_pca_features)
-    probs = gmm.predict_proba(x_pca_features)  # [복구] 소속 확률
 
     print("-" * 60)
     print(f"==> Selected N=3 | Final BIC: {gmm.bic(x_pca_features):.2f}")
@@ -144,27 +170,33 @@ def save_model_assets(scaler, pca_model, gmm_model, features, target_pca, thresh
         "scaler": scaler, "pca": pca_model, "gmm": gmm_model,
         "features": features, "target_pca": target_pca, "threshold": threshold
     }
-    with open("model/nutrition_model_assets.pkl", "wb") as f:
+    with open("ml_model/nutrition_gmm_model.pkl", "wb") as f:
         pickle.dump(model_data, f)
-    print("\n[성공] 'nutrition_model_assets.pkl' 저장 완료")
+    print("\n[성공] 'nutrition_gmm_model.pkl' 저장 완료")
 
 
 if __name__ == "__main__":
+    # 디렉토리 생성 (에러 방지)
+    os.makedirs("plots", exist_ok=True)
+    os.makedirs("ml_model", exist_ok=True)
+
     df_raw = load_data()
     x_scaled, target_scaled, feats, df_clean, scaler = preprocess_refined(df_raw)
 
-    # 분석 및 BIC/실루엣 로그 출력
+    # 분석 시작
     df_final, x_pca, target_pca, pca_model, gmm_model, threshold = train_analyze_gmm(df_clean, x_scaled, target_scaled)
 
-    # 시각화
+    # 시각화 실행
     visualize_persona(df_final, x_pca, target_pca, gmm_model, n_components=3)
 
-    # 리포트 출력
+    # [Step 4] 최종 리포트 출력 및 DB 저장 🚀
     print("\n" + "=" * 80)
     print(f" [최종 페르소나별 평균 지표 리포트] (Target-based Normal)")
     print("=" * 80)
-    report_df = df_final.groupby("CLUSTER_NAME")[feats].mean()
-    print(report_df.round(3).to_string())
+
+    # 지표 계산
+    report_df = df_final.groupby("CLUSTER_NAME")[feats].mean().round(3)
+    print(report_df.to_string())
     print("-" * 80)
 
     counts = df_final['CLUSTER_NAME'].value_counts()
@@ -172,15 +204,29 @@ if __name__ == "__main__":
         print(f"{name:<35} | {cnt:>5}명 ({cnt / len(df_final) * 100:>5.1f}%)")
     print("=" * 80)
 
-    # DB 저장 (기존 로직)
+    # 1. DB 저장 (USER_HEALTH_CLUSTER) 👊
+    # 이제 DB의 컬럼명과 DataFrame의 컬럼명이 일치하므로 바로 밀어넣습니다.
     with engine.connect() as conn:
         conn.execute(text("TRUNCATE TABLE USER_HEALTH_CLUSTER"))
         conn.commit()
 
-    keep_cols = ["ID", "AGE", "HE_BMI", "CARB_RATIO", "PROT_RATIO", "N_NA", "N_SUGAR", "PA_AEROBIC", "CLUSTER_ID",
-                 "CLUSTER_NAME"]
-    df_final[keep_cols].to_sql("user_health_cluster", con=engine, if_exists="append", index=False)
+    # 저장할 컬럼 리스트 (DB 테이블 구조와 1:1 매칭 확인)
+    keep_cols = ["USER_ID", "AGE", "HE_BMI", "CARB_RATIO", "PROT_RATIO",
+                 "N_NA", "N_SUGAR", "PA_AEROBIC", "CLUSTER_ID", "CLUSTER_NAME"]
 
-    # 모델 저장
+    try:
+        df_final[keep_cols].to_sql(
+            name="user_health_cluster",
+            con=engine,
+            if_exists="append",
+            index=False,
+            chunksize=1000
+        )
+        print(f"\n✅ USER_HEALTH_CLUSTER 테이블에 {len(df_final)}건 저장 완료!")
+    except Exception as e:
+        print(f"\n❌ DB 저장 중 오류 발생: {e}")
+
+    # 2. 모델 자산 저장 (.pkl)
     save_model_assets(scaler, pca_model, gmm_model, feats, target_pca, threshold)
-    print("\n[최종 완료] 모든 지표 출력, DB 저장 및 모델 파일 생성이 완료되었습니다.")
+
+    print("\n✨ 모든 작업이 끝났습니다. 이제 Flask에서 이 데이터를 불러오기만 하면 됩니다! 👊")

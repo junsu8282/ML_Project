@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, jsonify
 from pybo.model import db, User
+from pybo.predict_cluster import predict_user_persona
+from sqlalchemy import text
 
 bp = Blueprint('main', __name__, url_prefix='/')
 
@@ -82,10 +84,94 @@ def info_page():
     return render_template('info_input.html')
 
 
+@bp.route('/api/save_analysis', methods=['POST'])
+def save_analysis():
+    try:
+        data = request.get_json()
+
+        # 1. 입력 데이터 추출
+        age = int(data.get('age'))
+        gender = 1 if data.get('gender') == 'male' else 2
+        height = float(data.get('height')) / 100
+        weight = float(data.get('weight'))
+
+        he_bmi = round(weight / (height ** 2), 2)
+        activity = float(data.get('activity'))
+        pa_aerobic = 1 if activity >= 1.55 else 0
+
+        # 영양소 (원본 수치)
+        n_cho = float(data.get('carbs'))
+        n_prot = float(data.get('protein'))
+        n_fat = float(data.get('fat'))
+        n_sugar = float(data.get('sugar'))
+        n_na = float(data.get('sodium'))
+
+        # 2. 탄/단/지 비율만 계산 (차트용) 👊
+        total_kcal = (n_cho * 4) + (n_prot * 4) + (n_fat * 9)
+        c_ratio = round((n_cho * 4) / total_kcal, 4) if total_kcal > 0 else 0
+        p_ratio = round((n_prot * 4) / total_kcal, 4) if total_kcal > 0 else 0
+        f_ratio = round((n_fat * 9) / total_kcal, 4) if total_kcal > 0 else 0
+
+        # 3. AI 모델 예측
+        user_input_for_ml = {
+            'N_CHO': n_cho, 'N_PROT': n_prot, 'N_FAT': n_fat,
+            'N_NA': n_na, 'N_SUGAR': n_sugar,
+            'HE_BMI': he_bmi, 'AGE': age, 'SEX': gender, 'PA_AEROBIC': pa_aerobic
+        }
+        analysis_result = predict_user_persona(user_input_for_ml)
+
+        # 4. DB 저장 (에러 났던 sugar_ratio, na_ratio 삭제!) 🚀
+        save_query = text("""
+            INSERT INTO USER_INPUT_DATA (
+                INPUT_ID, USER_ID, N_CHO, N_PROT, N_FAT, N_NA, N_SUGAR,
+                HE_BMI, AGE, SEX, PA_AEROBIC, PREDICTED_CLUSTER,
+                CARB_RATIO, PROT_RATIO, FAT_RATIO
+            )
+            VALUES (
+                INPUT_ID_SEQ.NEXTVAL, :user_id, :n_cho, :n_prot, :n_fat, :n_na, :n_sugar,
+                :he_bmi, :age, :sex, :pa_aerobic, :predicted_cluster,
+                :c_ratio, :p_ratio, :f_ratio
+            )
+        """)
+
+        db.session.execute(save_query, {
+            'user_id': session.get('user_id', 'GUEST'),
+            'n_cho': n_cho, 'n_prot': n_prot, 'n_fat': n_fat, 'n_na': n_na, 'n_sugar': n_sugar,
+            'he_bmi': he_bmi, 'age': age, 'sex': gender, 'pa_aerobic': pa_aerobic,
+            'predicted_cluster': analysis_result['cluster_name'],
+            'c_ratio': c_ratio, 'p_ratio': p_ratio, 'f_ratio': f_ratio
+        })
+        db.session.commit()
+
+        return jsonify({'status': 'success', 'redirect_url': url_for('main.result_page')})
+
+    except Exception as e:
+        print(f"❌ 오류 발생: {e}")
+        db.session.rollback()
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 @bp.route('/result')
 def result_page():
-    if 'user_id' not in session:
+    user_id = session.get('user_id')
+    if not user_id:
         return redirect(url_for('main.main_page'))
 
-    # 여기서 DB에서 분석 결과를 가져오거나 세션에서 꺼내서 전달
-    return render_template('result.html')
+    try:
+        # 최신 데이터를 가져옵니다. 🚀
+        query = text("SELECT * FROM USER_INPUT_DATA WHERE USER_ID = :user_id ORDER BY INPUT_ID DESC")
+        row = db.session.execute(query, {"user_id": user_id}).fetchone()
+
+        if row:
+            # 대문자 키를 소문자로 변환하여 템플릿 전달
+            res = {k.lower(): v for k, v in row._mapping.items()}
+
+            # 클러스터 이름을 result.cluster_name으로 쓸 수 있게 별칭 매핑
+            res['cluster_name'] = res.get('predicted_cluster', '분석 결과 없음')
+
+            return render_template('result.html', result=res)
+
+    except Exception as e:
+        print(f"데이터 조회 에러: {e}")
+
+    return "<script>alert('데이터가 없습니다!'); history.back();</script>"

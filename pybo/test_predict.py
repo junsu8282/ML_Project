@@ -6,7 +6,7 @@ import pandas as pd
 # 1. 모델 애셋 로드 (통합 pkl 사용)
 # ==============================
 # 아까 save_model_assets 함수로 만든 pkl 파일을 불러옵니다.
-with open("model/nutrition_model_assets.pkl", "rb") as f:
+with open("ml_model/nutrition_gmm_model.pkl", "rb") as f:
     assets = pickle.load(f)
 
 scaler = assets["scaler"]
@@ -39,8 +39,8 @@ test_samples = [
     },
     {
         "DESC": "4. G0 (중장년 비활동) - 50대, 운동 안함, 식단 불균형",
-        "N_CHO": 330, "N_PROT": 80, "N_FAT": 70, "N_NA": 3200, "N_SUGAR": 55,
-        "HE_BMI": 24.5, "AGE": 57, "PA_AEROBIC": 0.0
+        "N_CHO": 250, "N_PROT": 80, "N_FAT": 60, "N_NA": 2000, "N_SUGAR": 50,
+        "HE_BMI": 22.5, "AGE": 25, "PA_AEROBIC": 0.0
     }
 ]
 
