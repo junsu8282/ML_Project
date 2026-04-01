@@ -8,6 +8,7 @@ db = SQLAlchemy()
 
 class User(db.Model):
     __tablename__ = 'USERS'  # 오라클 DB에 생성될 테이블 이름
+    user_name = db.Column(db.String(50), nullable=False)  # 이름
     user_id = db.Column(db.String(50), primary_key=True)  # 아이디 (PK)
     password = db.Column(db.String(100), nullable=False)  # 비밀번호
 

@@ -28,7 +28,9 @@ def login():
     user = User.query.filter_by(user_id=user_id, password=password).first()
 
     if user:
-        session['user_id'] = user_id
+        session['user_id'] = user.user_id
+        session['user_name'] = user.user_name
+
         # JS에서 window.location.href = "/info"로 이동하게 되므로 status만 넘깁니다.
         return jsonify({"status": "success"})
     else:
@@ -38,13 +40,15 @@ def login():
 @bp.route('/api/register', methods=['POST'])
 def register():
     data = request.get_json()
+    user_name = data.get('user_name')
     user_id = data.get('user_id')
     password = data.get('password')
 
     if User.query.filter_by(user_id=user_id).first():
         return jsonify({"status": "error", "message": "이미 존재하는 아이디입니다."}), 400
 
-    new_user = User(user_id=user_id, password=password)
+    new_user = User(user_name=user_name, user_id=user_id, password=password)
+
     try:
         db.session.add(new_user)
         db.session.commit()
@@ -151,27 +155,53 @@ def save_analysis():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+# 1. 결과 페이지 진입 (껍데기만 로드)
 @bp.route('/result')
 def result_page():
+    return render_template('result.html')
+
+
+# 2. AJAX 요청을 처리하는 데이터 전용 API
+@bp.route('/api/get_latest_result')
+def get_latest_result():
     user_id = session.get('user_id')
     if not user_id:
-        return redirect(url_for('main.main_page'))
+        return jsonify({'status': 'error', 'message': '로그인 세션이 만료되었습니다.'}), 401
 
     try:
-        # 최신 데이터를 가져옵니다. 🚀
+        # DB에서 데이터 가져오기
         query = text("SELECT * FROM USER_INPUT_DATA WHERE USER_ID = :user_id ORDER BY INPUT_ID DESC")
         row = db.session.execute(query, {"user_id": user_id}).fetchone()
 
         if row:
-            # 대문자 키를 소문자로 변환하여 템플릿 전달
             res = {k.lower(): v for k, v in row._mapping.items()}
 
-            # 클러스터 이름을 result.cluster_name으로 쓸 수 있게 별칭 매핑
-            res['cluster_name'] = res.get('predicted_cluster', '분석 결과 없음')
+            # 2. 함수에 넣을 데이터 형식 맞추기 (대문자 키값)
+            user_input_dict = {
+                'N_CHO': res['n_cho'],
+                'N_PROT': res['n_prot'],
+                'N_FAT': res['n_fat'],
+                'N_NA': res['n_na'],
+                'N_SUGAR': res['n_sugar'],
+                'HE_BMI': res['he_bmi'],
+                'AGE': res['age'],
+                'PA_AEROBIC': res['pa_aerobic']
+            }
 
-            return render_template('result.html', result=res)
+            # 3. 이미 만든 함수 호출해서 결과 받기 🚀
+            prediction = predict_user_persona(user_input_dict)
+
+            # 4. 결과 합치기
+            res.update(prediction)  # cluster_id, cluster_name 등이 들어감
+
+            # [추가] 도넛 그래프를 위한 확률값 계산이 필요하다면?
+            # 현재 predict_user_persona 함수가 확률(probabilities)을 리턴하지 않으므로,
+            # 필요하다면 해당 함수에서 'probas': gmm.predict_proba(x_pca)[0].tolist()를 추가해줘야 합니다.
+
+            return jsonify({'status': 'success', 'data': res})
+
+        else:
+            return jsonify({'status': 'error', 'message': '데이터 없음'}), 404
 
     except Exception as e:
-        print(f"데이터 조회 에러: {e}")
-
-    return "<script>alert('데이터가 없습니다!'); history.back();</script>"
+        return jsonify({'status': 'error', 'message': str(e)}), 500

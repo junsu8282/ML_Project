@@ -24,24 +24,9 @@ print("✅ GMM & PCA 모델 로드 완료")
 test_samples = [
     {
         "DESC": "1. G1 (고단백 헬창) - 30대, 고단백, 운동 필수",
-        "N_CHO": 200, "N_PROT": 120, "N_FAT": 50, "N_NA": 2700, "N_SUGAR": 35,
-        "HE_BMI": 26.0, "AGE": 34, "PA_AEROBIC": 1.0
-    },
-    {
-        "DESC": "2. Normal (권장 준수) - 40대, 균형 잡힌 모범생",
-        "N_CHO": 300, "N_PROT": 80, "N_FAT": 60, "N_NA": 2500, "N_SUGAR": 45,
-        "HE_BMI": 22.5, "AGE": 45, "PA_AEROBIC": 1.0
-    },
-    {
-        "DESC": "3. G2 (액티브 시니어) - 50대, 운동은 하나 짜게 먹음",
-        "N_CHO": 350, "N_PROT": 85, "N_FAT": 75, "N_NA": 4300, "N_SUGAR": 80,
-        "HE_BMI": 25.0, "AGE": 55, "PA_AEROBIC": 1.0
-    },
-    {
-        "DESC": "4. G0 (중장년 비활동) - 50대, 운동 안함, 식단 불균형",
         "N_CHO": 250, "N_PROT": 80, "N_FAT": 60, "N_NA": 2000, "N_SUGAR": 50,
-        "HE_BMI": 22.5, "AGE": 25, "PA_AEROBIC": 0.0
-    }
+        "HE_BMI": 22.5, "AGE": 25, "PA_AEROBIC": 0
+    },
 ]
 
 # ==============================

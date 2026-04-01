@@ -1,7 +1,7 @@
 from flask import Flask
 import oracledb
 from .config import Config
-from .model import db  # model.py에 정의된 db 객체 가져오기
+from .model import db
 
 def create_app():
     app = Flask(__name__)
@@ -13,7 +13,7 @@ def create_app():
         # 이미 초기화된 경우 에러가 날 수 있으므로 예외처리
         print(f"Oracle Client Status: {e}")
 
-        # Flask-SQLAlchemy 초기화
+    # Flask-SQLAlchemy 초기화
     db.init_app(app)
 
     with app.app_context():

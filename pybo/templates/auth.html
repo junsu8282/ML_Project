@@ -34,19 +34,27 @@
             </form>
 
             <form id="registerForm" class="auth-form" style="display: none;">
+                <div class="input-group" style="margin-bottom: 20px;">
+                    <label>성함 또는 닉네임</label>
+                    <input type="text" id="regName" name="user_name" placeholder="이름을 입력해주세요" required>
+                </div>
+
                 <div class="input-group">
                     <label>새 아이디 (이메일)</label>
                     <input type="email" id="regId" name="user_id" placeholder="example@email.com" required>
                 </div>
+
                 <div class="input-group">
                     <label>비밀번호 설정</label>
                     <input type="password" id="regPw" name="password" placeholder="4자 이상 입력" required>
                 </div>
+
                 <div class="input-group">
                     <label>비밀번호 확인</label>
                     <input type="password" id="regPwConfirm" placeholder="한 번 더 입력하세요" required>
                     <small id="pwCheckMsg" style="display: block; margin-top: 5px; font-size: 12px;"></small>
                 </div>
+
                 <button type="submit" class="submit-btn register-btn">회원가입 완료</button>
             </form>
         </div>
@@ -113,6 +121,7 @@
     document.getElementById('registerForm').onsubmit = async (e) => {
         e.preventDefault();
 
+        const userName = document.getElementById('regName').value;
         const id = document.getElementById('regId').value;
         const pw = document.getElementById('regPw').value;
         const pwConfirm = document.getElementById('regPwConfirm').value;
@@ -128,6 +137,7 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+                user_name: userName,
                 user_id: id,
                 password: pw
             })
@@ -138,6 +148,11 @@
         if (response.ok) {
             alert(result.message); // "회원가입이 완료되었습니다!"
             switchTab('login');    // 가입 성공 후 로그인 탭으로 자동 이동
+
+            if(document.getElementById('loginId')) {
+                document.getElementById('loginId').value = id;
+                document.getElementById('loginPw').focus();
+            }
         } else {
             alert(result.message || "회원가입 실패");
         }
