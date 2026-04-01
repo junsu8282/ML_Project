@@ -33,7 +33,7 @@
                 </div>
             </form>
 
-            <form id="registerForm" class="auth-form" style="display: none;">
+            <form id="registerForm" class="auth-form">
                 <div class="input-group" style="margin-bottom: 20px;">
                     <label>성함 또는 닉네임</label>
                     <input type="text" id="regName" name="user_name" placeholder="이름을 입력해주세요" required>
@@ -70,22 +70,37 @@
 {% block scripts %}
 <script>
     function switchTab(mode) {
+        const card = document.querySelector('.auth-card');
         const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');
-        const loginTab = document.getElementById('loginTab');
-        const registerTab = document.getElementById('registerTab');
 
+        // 1. [중요] 현재 'auto'인 높이를 'px' 숫자로 강제 고정! 👊
+        // 출발점을 찍어줘야 브라우저가 "아, 여기서부터 줄어들면 되겠구나"라고 인식합니다.
+        card.style.height = `${card.offsetHeight}px`;
+
+        // 2. 폼 교체 (클래스 변경)
         if (mode === 'login') {
-            loginForm.style.display = 'flex'; // flex로 변경하여 정렬 유지
-            registerForm.style.display = 'none';
+            loginForm.classList.add('active-form');
+            registerForm.classList.remove('active-form');
+
             loginTab.classList.add('active');
             registerTab.classList.remove('active');
         } else {
-            loginForm.style.display = 'none';
-            registerForm.style.display = 'flex'; // flex로 변경하여 정렬 유지
+            loginForm.classList.remove('active-form');
+            registerForm.classList.add('active-form');
+
             loginTab.classList.remove('active');
             registerTab.classList.add('active');
         }
+
+        // 3. 0.01초 뒤에 새로운 높이로 '목적지' 설정 🚀
+        setTimeout(() => {
+            const activeForm = document.querySelector('.auth-form.active-form');
+            const newHeight = activeForm.offsetTop + activeForm.scrollHeight + 30;
+
+            // 목적지를 'px' 숫자로 던져주면, 이제 드디어 슥- 하고 줄어듭니다!
+            card.style.height = `${newHeight}px`;
+        }, 10);
     }
 
     // 비밀번호 실시간 체크 및 서버 전송 로직은 준수님 기존 코드 그대로 유지
