@@ -1,12 +1,227 @@
 /* 1. 공통 설정 (전체 페이지 적용) */
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans KR', sans-serif; }
 
+html {
+    scrollbar-gutter: stable;
+}
+
 body {
-    background-color: #E8F7F3; /* 연민트 배경 */
+    background-color: #E8F7F3;
+    display: flex;
+    flex-direction: column; /* 자식들을 위에서 아래로 쌓이게 변경! 👊 */
+    align-items: center;    /* 가로 중앙 정렬 */
+    min-height: 100vh;
+    margin: 0;
+}
+
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 65px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+
+    display: flex;
+    align-items: center;
+    z-index: 1000;
+}
+
+.nav-container {
+    width: 100%;
+    max-width: none; /* 적당한 전체 너비 */
+    margin: 0 auto;    /* 가운데 정렬 */
+    padding: 0 20px;
+
+    display: flex;             /* 1. 정렬 레이아웃 활성화 🚀 */
+    justify-content: space-between; /* 2. [핵심] 왼쪽 끝과 오른쪽 끝으로 찢기! 👊 */
+    align-items: center;       /* 3. 위아래 중앙 맞추기 */
+}
+
+/* [2] PC용 메뉴 스타일 (기본) 👊 */
+.nav-menu {
+    display: flex; /* PC에선 나란히 보임 🚀 */
+    gap: 15px;
+}
+
+/* [3] 햄버거 버튼 (평소엔 숨김) 🚀 */
+.hamburger {
+    display: none; /* PC 풀화면에선 안 보임 👊 */
+    flex-direction: column;
+    justify-content: space-between;
+    width: 24px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.hamburger span {
+    display: block;
+    width: 100%;       /* 24px 꽉 채우기 */
+    height: 3px;       /* 막대기 두께 */
+    background-color: #00A669; /* 준수님 시그니처 초록색 🚀 */
+    border-radius: 10px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* 쫀득한 변신 효과 👊 */
+}
+
+/* [4] 📱 화면이 768px보다 작아질 때 (PC 창 조절 포함) 👊 */
+@media (max-width: 768px) {
+    /* PC 메뉴를 공중에 띄워서 숨겨버림 🚀 */
+    .nav-menu {
+        display: none; /* [핵심] 공간을 아예 지워버려야 로고가 안 밀립니다 👊 */
+        position: fixed;
+        top: 60px;
+        right: 0;
+        width: 100%;
+        background: white;
+        flex-direction: column;
+        padding: 20px 0;
+        box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+    }
+
+    /* 햄버거 클릭 시 나타날 때만 flex로 변경 🚀 */
+    .nav-menu.active {
+        display: flex;
+    }
+
+    /* 드디어 햄버거 버튼 등장! 👊 */
+    .hamburger {
+        display: flex;
+    }
+}
+
+/* 로고 전체 */
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    transition: transform 0.2s ease;
+}
+
+/* 아이콘 배경 동그라미 */
+#navLogoIcon {
+    width: 32px;
+    height: 32px;
+    background-color: #00A669;
+    border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
+    box-shadow: 0 2px 6px rgba(0, 166, 105, 0);
+    transition: all 0.3s ease; /* 애니메이션 */
+
+    position: relative;
+
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+}
+
+/* 로고 전용 내부 투명 고리 🚀 */
+#navLogoIcon::before {
+    content: '';
+    position: absolute;
+
+    /* 원 안에서 간격 */
+    top: 6px; left: 6px; right: 6px; bottom: 6px;
+
+    border: 1.5px solid white;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+/* 내부 SVG 아이콘 위치 조정 👊 */
+#navLogoIcon svg {
+    position: relative;
+    z-index: 2; /* 고리보다 위로! 🚀 */
+    fill: none;
+
+    /* 32px 원 안에서는 SVG가 14~16px일 때 가장 예쁩니다 */
+    width: 14px;
+    height: 14px;
+}
+
+/* 로고 텍스트 스타일 🚀 */
+.logo-text {
+    font-size: 20px;
+    font-weight: 700;
+    color: black;
+    letter-spacing: -1px; /* 글자 간격을 좁혀서 단단한 느낌 */
+}
+
+/* '분석' 글자만 포인트 컬러로! */
+.logo-text .highlight {
+    color: #00A669;
+}
+
+/* 마우스를 올렸을 때 (Hover Effect) */
+.nav-logo:hover {
+    transform: scale(1.03); /* 살짝 커지는 텐션 */
+
+    will-change: transform;
+    -webkit-font-smoothing: antialiased;
+}
+
+.nav-logo:hover #navLogoIcon {
+    transform: rotate(15deg);
+}
+
+/* 오른쪽 로그인 버튼 */
+.nav-login-btn {
+    display: inline-block;
+    padding: 8px 10px;
+    color: #00A669;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+
+    will-change: transform;
+    -webkit-font-smoothing: antialiased;
+}
+
+.nav-login-btn:hover {
+    color: #008f5a; /* 더 진한 녹색 */
+    transform: scale(1.05); /* 살짝 커지는 텐션 */
+}
+
+/* 공통 버튼 스타일 */
+.nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%); /* 세로 중앙 정렬 */
+    background: rgba(0, 0, 0, 0.2); /* 반투명 배경 */
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 30; /* 슬라이드보다 위에 */
+    transition: all 0.3s ease;
+}
+
+.nav-btn:hover {
+    background: rgba(0, 0, 0, 0.5); /* 호버 시 더 진하게 */
+    transform: translateY(-50%) scale(1.1); /* 살짝 커짐 */
+}
+
+/* 왼쪽 버튼 위치 */
+.prev-btn {
+    left: 20px;
+}
+
+/* 오른쪽 버튼 위치 */
+.next-btn {
+    right: 20px;
+}
+
+/* SVG 아이콘 색상 보정 */
+.nav-btn svg path {
+    stroke: white; /* 👊 아까 보셨던 흰색 선 */
 }
 
 /* 모든 페이지를 감싸는 쫀쫀한 너비의 래퍼 */
@@ -15,9 +230,11 @@ body {
     max-width: 400px;
     padding: 20px;
     text-align: center;
+    margin-top: 100px; /* 네비바 높이 고려 */
+    flex: 1;           /* [핵심] 푸터를 화면 맨 아래로 밀어내는 힘! 🚀 */
 }
 
-/* 넓은 너비 (정보 입력용 - 준수님 pick!) */
+/* 넓은 너비 (정보 입력용) */
 .auth-wrapper.wide {
     max-width: 600px; /* 여기서 원하는 만큼 넓히세요! (600px~700px 추천) */
 }
@@ -32,6 +249,33 @@ body {
     border-radius: 50%;
     display: flex; justify-content: center; align-items: center;
     margin: 0 auto 15px;
+
+    position: relative;
+}
+
+/*  원 안에 투명한 흰색 테두리 고리 */
+.icon-circle::before {
+    content: '';          /* 빈 공간 생성 */
+    position: absolute;   /* 부모(.icon-circle) 기준으로 절대 위치 */
+
+    /* 부모보다 살짝 작게 (테두리 두께만큼) 설정 */
+    top: 7px; left: 7px; right: 7px; bottom: 7px;
+
+    border: 2px solid white; /* 흰색 테두리 */
+    border-radius: 50%;
+
+    /* SVG 아이콘보다 뒤에 위치하게 (Z-index 조정) */
+    z-index: 1;
+}
+
+/* 기존 SVG 아이콘 설정 */
+.icon-circle svg {
+    /* 가상 요소 고리보다 앞에 오게 (Z-index 조정) */
+    position: relative;
+    z-index: 2;
+
+    width: 20px;
+    height: 20px;
 }
 
 .info-header a {

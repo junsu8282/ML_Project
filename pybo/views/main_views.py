@@ -6,14 +6,25 @@ from sqlalchemy import text
 bp = Blueprint('main', __name__, url_prefix='/')
 
 
+# 1. 메인 랜딩 페이지
 @bp.route('/')
 def main_page():
-    # 1. 이미 로그인 세션이 있다면 정보 입력 페이지로 리다이렉트
+    # 이미 로그인 세션이 있다면 정보 입력 페이지로 하이패스!
     if 'user_id' in session:
         return redirect(url_for('main.info_page'))
 
-    # 2. 로그인 안 되어 있으면 'auth.html'을 보여줍니다. (base.html이 아닙니다!)
-    # auth.html이 base.html을 상속받고 있으므로 디자인은 자동으로 따라옵니다.
+    # 로그인 안 되어 있으면 방금 만든 '프리미엄 홈화면'을 보여줍니다.
+    return render_template('home.html')
+
+
+# 2. [새로 추가] 로그인/회원가입 페이지 (auth.html)
+@bp.route('/login')
+def login_page():
+    # 이미 로그인한 유저가 주소창에 /login 치고 들어오는 것 방지
+    if 'user_id' in session:
+        return redirect(url_for('main.info_page'))
+
+    # 랜딩 페이지에서 '분석 시작하기'를 누르면 여기로 와서 카드 폼을 보여줍니다! 🚀
     return render_template('auth.html')
 
 

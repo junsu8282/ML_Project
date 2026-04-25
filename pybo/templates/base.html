@@ -4,13 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>식습관 유형 분석</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    {% block extra_css %}{% endblock %}
+
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800;&display=swap" rel="stylesheet">
 </head>
 <body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <div id="navLogoIcon">
+                    <svg width="14" height="14" viewBox="0 0 24 24">
+                        <path d="M20 6L9 17L4 12" stroke="white" stroke-width="3"/>
+                    </svg>
+                </div>
+                <span class="logo-text">식습관 <span class="highlight">분석</span></span>
+            </a>
+
+            <div class="nav-menu" id="navMenu">
+                <a href="{{ url_for('main.login') }}" class="nav-login-btn">로그인</a>
+                <a href="{{ url_for('main.register') }}" class="nav-login-btn">회원가입</a>
+            </div>
+
+            <div class="hamburger" id="hamburger">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    </nav>
+
     {% block content %}{% endblock %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        // 1. 필요한 요소들을 변수에 담기 🚀
+        const hamburger = document.getElementById('hamburger');
+        const navMenu = document.getElementById('navMenu');
+
+        // 2. 햄버거 버튼에 '클릭' 이벤트 리스너 추가 👊
+        hamburger.addEventListener('click', () => {
+            // active 클래스를 넣었다 뺐다(toggle) 합니다.
+            hamburger.classList.toggle('active'); // 햄버거 -> X 변신 🚀
+            navMenu.classList.toggle('active');   // 메뉴창 나타남/사라짐 👊
+        });
+
+        // 3. [디테일] 메뉴 안의 버튼(로그인/회원가입) 클릭 시 메뉴 닫기 🚀
+        document.querySelectorAll('.nav-login-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                hamburger.classList.remove('active');
+                navMenu.classList.remove('active');
+            });
+        });
+    </script>
     {% block scripts %}{% endblock %}
 </body>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </html>

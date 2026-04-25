@@ -1,0 +1,277 @@
+:root {
+    --primary-color: #33a474;
+    --text-main: #303e49;
+    --text-sub: #5c6c7b;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- [0] 기본 바디 설정 강제 초기화 👊 --- */
+body {
+    display: block !important;
+    align-items: stretch !important;
+    background-color: #fff !important;
+    margin: 0;
+    padding: 0;
+    width: 100% !important;
+}
+
+/* --- 레이아웃 기본 --- */
+.hero-full-wrapper { position: relative; width: 100%; height: 100vh; overflow: hidden; z-index: 1; }
+.hero-slider { display: flex; width: 500%; height: 100%; transform: translateX(-100vw); }
+.hero-slide { width: 100vw; height: 100%; flex-shrink: 0; position: relative; }
+.hero-image-area { position: absolute; inset: 0; z-index: -1; }
+.hero-image-area img { width: 100%; height: 100%; object-fit: cover; }
+
+/* --- 텍스트 고정 레이아웃 👊 --- */
+.hero-fixed-content-area {
+    position: absolute; inset: 0; z-index: 10; display: flex; align-items: center; pointer-events: none;
+}
+.hero-container { max-width: 1200px; width: 100%; margin: 0 auto; padding: 0 50px; position: relative; }
+
+.hero-text-item {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    opacity: 0; visibility: hidden; transition: none; pointer-events: auto;
+}
+
+/* 활성화 시 애니메이션 */
+.hero-text-item.active { opacity: 1; visibility: visible; }
+.hero-text-item.active .hero-tag,
+.hero-text-item.active .hero-title,
+.hero-text-item.active .hero-subtitle {
+    animation: fadeInUp 0.5s linear;
+}
+
+/* 원본 디자인 상세 (기존 설정 유지) */
+.hero-tag { color: #33a474; font-size: 18px; font-weight: 700; margin-bottom: 15px; display: block; }
+.hero-title { font-size: 56px !important; line-height: 1.2 !important; color: #303e49; font-weight: 900 !important; margin: 15px 0 20px 0 !important; word-break: keep-all; }
+.hero-title strong { color: #33a474; }
+.hero-subtitle { font-size: 19px !important; color: #303e49; line-height: 1.6; margin-bottom: 40px !important; display: block !important; }
+
+.main-cta {
+    background-color: #33a474;
+    color: white;
+
+    /* 👊 핵심: 너비를 고정하거나 최소 너비를 지정 */
+    display: inline-flex;       /* 내부 텍스트 중앙 정렬을 위해 flex 사용 */
+    justify-content: center;    /* 가로 중앙 정렬 */
+    align-items: center;        /* 세로 중앙 정렬 */
+    min-width: 150px;           /* 모든 버튼의 최소 너비를 동일하게 (수치 조절 가능) */
+
+    padding: 15px 0;            /* 좌우 패딩 대신 상하 패딩만 남김 */
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 18px;
+    transition: background 0.3s ease;
+}
+
+.main-cta:hover {
+    background-color: #2a8b61;
+}
+
+/* 컨트롤러 (기존 유지) */
+.hero-dots { position: absolute; bottom: 30px; left: 20%; transform: translateX(-50%); z-index: 30; display: flex; gap: 10px; }
+.dot { width: 12px; height: 12px; background: #ddd; border-radius: 50%; cursor: pointer; transition: 0.3s; }
+.dot.active { background: #33a474; width: 25px; border-radius: 10px; }
+.nav-btn { position: absolute; top: 50%; transform: translateY(-50%); z-index: 30; background: rgba(0,0,0,0.2); border: none; cursor: pointer; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.prev-btn { left: 20px; } .next-btn { right: 20px; }
+
+/* 랜딩 */
+/* [1] 섹션 간 여백 확보 */
+.value-section {
+    padding: 100px 20px; /* 위아래 충분한 여백을 주어야 시원해 보입니다 */
+    background-color: #fcfcfc; /* 히어로 섹션과 구분되도록 아주 연한 배경색 */
+    text-align: center;
+}
+
+.section-header h2 {
+    font-size: 36px;
+    color: var(--text-main);
+    margin-bottom: 20px;
+    font-weight: 800;
+}
+
+/* [2] 기능 그리드 (Feature Grid) */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3열 배치 */
+    gap: 40px;
+    max-width: 1200px;
+    margin: 60px auto 0;
+}
+
+.feature-item {
+    background: #fff;
+    padding: 40px 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05); /* 부드러운 그림자 */
+    transition: transform 0.3s ease;
+}
+
+.feature-item:hover {
+    transform: translateY(-10px); /* 마우스 올리면 살짝 들리는 효과 */
+}
+
+.feature-icon {
+    font-size: 40px;
+    margin-bottom: 20px;
+}
+
+
+/* --- [Footer 전체 설정] --- */
+.main-footer {
+    background-color: #1a1e22; /* 💡 깊이감 있는 다크 그레이 */
+    color: #94a3b8; /* 💡 가독성 좋은 연한 회색 텍스트 */
+    padding: 80px 0 40px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 50px;
+}
+
+/* --- [상단 영역] --- */
+.footer-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 40px;
+    margin-bottom: 40px;
+}
+
+.footer-brand {
+    flex: 1 1 300px;
+}
+
+.footer-logo {
+    font-size: 24px;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 15px;
+}
+
+.footer-logo span {
+    color: var(--primary-color); /* #33a474 적용 */
+}
+
+.brand-desc {
+    font-size: 15px;
+    color: #64748b;
+}
+
+/* --- [링크 그룹] --- */
+.footer-links {
+    display: flex;
+    gap: 60px;
+}
+
+.link-group h4 {
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.link-group a {
+    display: block;
+    color: #94a3b8;
+    text-decoration: none;
+    margin-bottom: 12px;
+    transition: color 0.2s ease;
+}
+
+.link-group a:hover {
+    color: var(--primary-color); /* 마우스 올리면 브랜드 컬러로 변함 */
+}
+
+/* --- [구분선] --- */
+.footer-divider {
+    border: 0;
+    border-top: 1px solid #334155;
+    margin-bottom: 30px;
+}
+
+/* --- [하단 상세 정보] --- */
+.footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.company-info span {
+    display: inline-block;
+    margin-right: 15px;
+    position: relative;
+}
+
+/* 텍스트 사이 구분 점(|) 넣기 */
+.company-info span:not(:last-child)::after {
+    content: "|";
+    margin-left: 15px;
+    color: #334155;
+}
+
+.company-info p {
+    margin-top: 10px;
+    color: #475569;
+}
+
+.copyright {
+    color: #475569;
+    font-size: 13px;
+}
+
+/* --- [반응형 대응] --- */
+@media (max-width: 768px) {
+    .footer-top {
+        flex-direction: column;
+    }
+    .footer-links {
+        gap: 30px;
+        width: 100%;
+        justify-content: space-between;
+    }
+    .footer-bottom {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+
+/* --- [5] 미디어 쿼리: 스마트폰/태블릿 대응 (임계점 이후 스타일) --- */
+@media (max-width: 1024px) {
+    .hero-title {
+        font-size: 42px !important; /* 화면 작아지면 글씨도 조금 작게 */
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-container {
+        padding: 0 20px;
+        justify-content: center; /* 모바일에선 가운데 정렬 권장 */
+    }
+
+    .hero-text-content {
+        text-align: center;
+        max-width: 100%;
+    }
+
+    .hero-title {
+        font-size: 32px !important;
+    }
+
+    /* 💡 모바일에서 높이가 너무 답답하면 임계점 조정 */
+    .hero-full-wrapper {
+        min-height: 500px;
+    }
+}
