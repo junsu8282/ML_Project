@@ -20,7 +20,13 @@ body {
 }
 
 /* --- 레이아웃 기본 --- */
-.hero-full-wrapper { position: relative; width: 100%; height: 100vh; overflow: hidden; z-index: 1; }
+.hero-full-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    z-index: 1;
+}
 .hero-slider { display: flex; width: 500%; height: 100%; transform: translateX(-100vw); }
 .hero-slide { width: 100vw; height: 100%; flex-shrink: 0; position: relative; }
 .hero-image-area { position: absolute; inset: 0; z-index: -1; }
@@ -78,14 +84,29 @@ body {
 .dot { width: 12px; height: 12px; background: #ddd; border-radius: 50%; cursor: pointer; transition: 0.3s; }
 .dot.active { background: #33a474; width: 25px; border-radius: 10px; }
 .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); z-index: 30; background: rgba(0,0,0,0.2); border: none; cursor: pointer; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-.prev-btn { left: 20px; } .next-btn { right: 20px; }
+.prev-btn { left: 20px; }
+.next-btn { right: 20px; }
+
 
 /* 랜딩 */
 /* [1] 섹션 간 여백 확보 */
 .value-section {
-    padding: 100px 20px; /* 위아래 충분한 여백을 주어야 시원해 보입니다 */
-    background-color: #fcfcfc; /* 히어로 섹션과 구분되도록 아주 연한 배경색 */
+    padding: 5vh 5vw; /* 위아래 충분한 여백을 주어야 시원해 보입니다 */
+    background-color: #E8F7F3; /* 히어로 섹션과 구분되도록 아주 연한 배경색 */
     text-align: center;
+
+    width: 100%;
+    min-height: 100vh;           /* 화면 높이 100% 확보 */
+    display: flex;               /* 내부 요소를 정렬하기 위해 flex 사용 */
+    flex-direction: column;      /* 위에서 아래로 흐르게 */
+    justify-content: center;     /* 세로 중앙 정렬 */
+    align-items: center;         /* 가로 중앙 정렬 */
+    box-sizing: border-box;      /* 패딩이 높이에 영향을 주지 않도록 설정 */
+    overflow: hidden;
+}
+
+.section-header {
+    margin-bottom: 4vh;          /* 헤더와 그리드 사이 간격을 화면 높이에 비례하게 */
 }
 
 .section-header h2 {
@@ -95,13 +116,21 @@ body {
     font-weight: 800;
 }
 
+.section-header p {
+    font-size: clamp(14px, 1.5vw, 18px);
+    color: #64748b;
+}
+
 /* [2] 기능 그리드 (Feature Grid) */
 .feature-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr); /* 3열 배치 */
-    gap: 40px;
-    max-width: 1200px;
-    margin: 60px auto 0;
+
+    gap: 3vw;                    /* 간격을 화면 너비에 비례하게 (유동적) */
+    max-width: 1400px;           /* 더 넓은 모니터를 위해 최대폭 상향 */
+    width: 100%;
+    margin: 60px auto;
+    align-items: stretch;        /* 모든 카드의 높이를 동일하게 */
 }
 
 .feature-item {
@@ -114,18 +143,105 @@ body {
 
 .feature-item:hover {
     transform: translateY(-10px); /* 마우스 올리면 살짝 들리는 효과 */
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
 }
 
 .feature-icon {
-    font-size: 40px;
-    margin-bottom: 20px;
+    font-size: clamp(30px, 5vh, 50px); /* 아이콘 크기 유동화 */
+    margin-bottom: 2vh;
 }
 
+.feature-item h3 {
+    font-size: clamp(18px, 2vw, 22px);
+    margin-bottom: 1.5vh;
+}
+
+.feature-item p {
+    font-size: clamp(14px, 1.2vw, 16px);
+    line-height: 1.6;
+    word-break: keep-all;        /* 한글 단어 깨짐 방지 */
+}
+
+.report-highlight-section {
+    background-color: #fcfcfc;
+    /* [수정] 화면 높이를 꽉 채우기 위한 설정 */
+    min-height: 100vh;           /* 최소 높이를 화면 높이의 100%로 */
+    display: flex;               /* 내부 요소를 정렬하기 위해 flex 사용 */
+    flex-direction: column;      /* 위에서 아래로 흐르게 */
+    justify-content: center;     /* 세로축 중앙 정렬 (이게 핵심입니다) */
+    align-items: center;         /* 가로축 중앙 정렬 */
+
+    padding: 60px 20px;          /* 여백을 약간 조정 (필요시) */
+    box-sizing: border-box;      /* 패딩이 높이에 합산되지 않도록 방지 */
+}
+
+.highlight-container {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    max-width: 1200px;
+    width: 100%;                 /* 컨테이너가 가로를 꽉 채우도록 설정 */
+    margin: 40px auto 0;         /* 헤더와의 간격 조절 */
+    flex-wrap: wrap;
+}
+
+.highlight-card {
+    flex: 1;
+    min-width: 300px;
+    max-width: 500px;
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
+}
+
+.highlight-card:hover {
+    transform: translateY(-10px); /* 살짝 떠오르는 효과 */
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+/* 1. 이미지를 감싸는 영역의 크기를 고정 */
+.card-image-wrapper {
+    width: 100%;           /* 카드의 너비에 맞춤 */
+    height: 250px;         /* 원하는 고정 높이 (적절히 조절하세요) */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;      /* 이미지가 넘치면 숨김 */
+    background-color: white; /* 이미지 로딩 전이나 빈 공간 배경색 */
+    border-radius: 12px 12px 0 0; /* 카드 상단 라운드 처리 */
+}
+
+/* 2. 이미지 자체의 크기 조절 방식 설정 */
+.card-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 20px; /* 차트가 벽에 붙지 않도록 여백 */
+}
+
+.card-body {
+    background-color: #f8fafc; /* 바디 부분만 아주 연한 회색/파란색 */
+    padding: 30px;
+    border-top: 1px solid #f1f5f9; /* 이미지 영역과 구분선 */
+}
+
+.badge {
+    background: #ff8a00;
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 15px;
+}
 
 /* --- [Footer 전체 설정] --- */
 .main-footer {
-    background-color: #1a1e22; /* 💡 깊이감 있는 다크 그레이 */
-    color: #94a3b8; /* 💡 가독성 좋은 연한 회색 텍스트 */
+    background-color: #0f172a; /* 💡 깊이감 있는 다크 네이비 */
+    color: #94a3b8;
     padding: 80px 0 40px;
     font-size: 14px;
     line-height: 1.6;
@@ -233,17 +349,33 @@ body {
 
 /* --- [반응형 대응] --- */
 @media (max-width: 768px) {
+    .value-section {
+        min-height: auto;        /* 모바일에선 스크롤이 자연스러움 */
+        padding: 80px 20px;
+    }
+
+    .feature-grid {
+        grid-template-columns: 1fr; /* 세로로 한 줄 */
+        gap: 30px;
+    }
+
+    .feature-item {
+        padding: 40px 20px;
+    }
+
     .footer-top {
         flex-direction: column;
+        text-align: center;
     }
+
     .footer-links {
-        gap: 30px;
+        justify-content: center;
         width: 100%;
-        justify-content: space-between;
     }
-    .footer-bottom {
-        flex-direction: column;
-        align-items: flex-start;
+
+    .section-header h2 {
+        font-size: 24px;
+        line-height: 1.3;
     }
 }
 

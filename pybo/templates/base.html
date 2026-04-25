@@ -16,16 +16,35 @@
         <div class="nav-container">
             <a href="/" class="nav-logo">
                 <div id="navLogoIcon">
-                    <svg width="14" height="14" viewBox="0 0 24 24">
-                        <path d="M20 6L9 17L4 12" stroke="white" stroke-width="3"/>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 6L9 17L4 12" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
                     </svg>
                 </div>
                 <span class="logo-text">식습관 <span class="highlight">분석</span></span>
             </a>
 
             <div class="nav-menu" id="navMenu">
-                <a href="{{ url_for('main.login') }}" class="nav-login-btn">로그인</a>
-                <a href="{{ url_for('main.register') }}" class="nav-login-btn">회원가입</a>
+                {% if session.get('user_id') %}
+                    <span class="welcome-msg">반가워요,</span>
+                    <div class="user-dropdown-container" id="userDropdownTrigger" onclick="toggleDropdown(event)">
+                        <span class="user-name-tag">
+                            <b>{{ session.user_name }}</b>님
+                            <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </span>
+
+                        <div class="user-dropdown-menu" id="userDropdownMenu">
+                            <a href="{{ url_for('main.mypage') }}">분석 기록</a>
+                            <a href="/">내 정보 수정</a>
+                            <hr class="dropdown-divider">
+                            <a href="{{ url_for('main.logout') }}" class="dropdown-logout">로그아웃</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="javascript:void(0)" class="nav-login-btn" onclick="openLoginModal('login');">로그인</a>
+                    <a href="javascript:void(0)" class="nav-login-btn" onclick="openLoginModal('register');">회원가입</a>
+                {% endif %}
+                <a href="{{ url_for('main.info_page') if session.get('user_id') else 'javascript:openLoginModal(\'login\')' }}"
+                   class="nav-start-btn">시작하기</a>
             </div>
 
             <div class="hamburger" id="hamburger">
@@ -35,6 +54,65 @@
     </nav>
 
     {% block content %}{% endblock %}
+
+    <div id="loginModal" class="modal-overlay">
+        <div class="auth-card modal-content">
+            <button class="close-modal" onclick="closeLoginModal()">&times;</button>
+
+            <div class="header-section" style="text-align: center;">
+                <div class="icon-circle icon-md">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M20 6L9 17L4 12" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="auth-tabs">
+                <div id="loginTab" class="auth-tab active" onclick="switchTab('login')">로그인</div>
+                <div id="registerTab" class="auth-tab" onclick="switchTab('register')">회원가입</div>
+            </div>
+
+            <div class="auth-forms-container">
+                <form id="loginForm" class="auth-form active-form">
+                    <div class="input-group">
+                        <label>이메일 아이디</label>
+                        <input type="email" id="loginId" value="admin@admin.com" placeholder="아이디를 입력하세요" required>
+                    </div>
+                    <div class="input-group">
+                        <label>비밀번호</label>
+                        <input type="password" id="loginPw" value="1234" placeholder="비밀번호를 입력하세요" required>
+                    </div>
+                    <button type="submit" class="auth-submit-btn">로그인</button>
+                </form>
+
+                <form id="registerForm" class="auth-form">
+                    <div class="input-group">
+                        <label>이름</label>
+                        <input type="text" id="regName" placeholder="실명을 입력하세요" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>이메일 아이디</label>
+                        <input type="email" id="regId" placeholder="example@email.com" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>비밀번호</label>
+                        <input type="password" id="regPw" placeholder="영문, 숫자 조합" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>비밀번호 확인</label>
+                        <input type="password" id="regPwConfirm" placeholder="한 번 더 입력하세요" required>
+                        <small id="pwCheckMsg" class="pw-msg"></small>
+                    </div>
+
+                    <button type="submit" class="auth-submit-btn register-btn">회원가입</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         // 1. 필요한 요소들을 변수에 담기 🚀
@@ -54,6 +132,129 @@
                 hamburger.classList.remove('active');
                 navMenu.classList.remove('active');
             });
+        });
+
+        // --- 👊 로그인/회원가입 모달 제어 로직 ---
+        function openLoginModal(mode = 'login') { // 기본값은 로그인
+            document.getElementById('loginModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            switchTab(mode); // 전달받은 모드(login 또는 register)로 탭 전환 👊
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function switchTab(mode) {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const loginTab = document.getElementById('loginTab');
+            const registerTab = document.getElementById('registerTab');
+
+            if (mode === 'login') {
+                loginForm.classList.add('active-form');
+                registerForm.classList.remove('active-form');
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
+            } else {
+                loginForm.classList.remove('active-form');
+                registerForm.classList.add('active-form');
+                loginTab.classList.remove('active');
+                registerTab.classList.add('active');
+            }
+        }
+
+        // 비밀번호 실시간 체크
+        const regPw = document.getElementById('regPw');
+        const regPwConfirm = document.getElementById('regPwConfirm');
+        const pwCheckMsg = document.getElementById('pwCheckMsg');
+
+        regPwConfirm.addEventListener('keyup', () => {
+            if (regPw.value === regPwConfirm.value) {
+                pwCheckMsg.textContent = "비밀번호가 일치합니다.";
+                pwCheckMsg.style.color = "#00A669";
+            } else {
+                pwCheckMsg.textContent = "비밀번호가 일치하지 않습니다.";
+                pwCheckMsg.style.color = "#ff4d4f";
+            }
+        });
+
+        // API 통신 (로그인)
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: document.getElementById('loginId').value,
+                    password: document.getElementById('loginPw').value
+                })
+            });
+
+            if (response.ok)
+                window.location.href = "/";
+            else
+                alert("아이디 또는 비밀번호가 일치하지 않습니다.");
+        };
+
+        // API 통신 (회원가입)
+        document.getElementById('registerForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const pw = regPw.value;
+            const pwConfirm = regPwConfirm.value;
+
+            if (pw !== pwConfirm) {
+                alert("비밀번호를 다시 확인해주세요.");
+                return;
+            }
+
+            const response = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_name: document.getElementById('regName').value,
+                    user_id: document.getElementById('regId').value,
+                    password: pw
+                })
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                alert("회원가입이 완료되었습니다! 로그인해주세요.");
+                switchTab('login');
+                document.getElementById('loginId').value = document.getElementById('regId').value;
+            } else {
+                alert(result.message || "회원가입 실패");
+            }
+        };
+
+        // 모달 바깥 클릭 시 닫기
+        window.onclick = function(event) {
+            const modal = document.getElementById('loginModal');
+            if (event.target === modal) closeLoginModal();
+        }
+
+        function toggleDropdown(event) {
+            // 클릭 이벤트가 부모(window)로 퍼지는 걸 막아서 바로 닫히는 현상 방지
+            event.stopPropagation();
+
+            const container = document.getElementById('userDropdownTrigger');
+            container.classList.toggle('active');
+        }
+
+        // 메뉴 바깥쪽 아무 데나 클릭하면 닫기
+        window.addEventListener('click', function(e) {
+            const container = document.getElementById('userDropdownTrigger');
+
+            // 1. 컨테이너가 존재하고 + 2. 현재 열려있는(active) 상태일 때만 체크
+            if (container && container.classList.contains('active')) {
+
+                // 3. [핵심] 클릭된 요소(e.target)가 컨테이너 안에 포함되어 있지 않다면? 닫기!
+                if (!container.contains(e.target)) {
+                    container.classList.remove('active');
+                }
+            }
         });
     </script>
     {% block scripts %}{% endblock %}

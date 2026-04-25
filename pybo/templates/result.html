@@ -1,365 +1,578 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="auth-wrapper wide" style="padding-bottom: 60px;">
-    <div class="info-header">
-        <a href="{{ url_for('main.info_page') }}" class="no-print">❮ 다시 입력하기</a>
-        <h1>식습관 분석 결과</h1>
-        <p class="subtitle">{{ session.get('user_name', '사용자') }} 님의 GMM 모델 분석 리포트입니다.</p>
-    </div>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/result.css') }}">
 
-    {# 1. 상단 식습관 유형 요약 박스 #}
-    <div id="result-box" class="result-type-box"
-         style="background: linear-gradient(135deg, #eee 0%, #ccc 100%);
-            border-radius: 12px; padding: 25px 30px;
-            display: flex; flex-wrap: wrap; align-items: center;
-            margin-bottom: 25px; transition: background 0.5s; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-
-        <div style="display: flex; align-items: center; margin-bottom: 15px;">
-            <div id="icon-wrapper" style="width: 60px; height: 60px; background-color: white; border-radius: 10px; display: flex; justify-content: center; align-items: center; margin-right: 20px; flex-shrink: 0;">
-                <div id="loading-spinner" class="spinner" style="width:20px; height:20px; border:3px solid #ccc; border-top:3px solid #333; border-radius:50%; animation:spin 1s linear infinite;"></div>
-            </div>
-
-            <div style="display: flex; flex-direction: column; align-items: flex-start;">
-                <span id="type-label" style="font-size: 22px; color: #FFFFFF; font-weight: 500; display: none;">당신의 식습관 유형</span>
-                <h2 id="c_name_display" style="font-size: 26px; font-weight: 800; margin: 0; color: #666; line-height: 1.1;">분석 중...</h2>
-            </div>
+    <div class="auth-wrapper wide" style="padding-bottom: 100px; max-width: 1200px; margin: 0 auto;">
+        <div class="info-header">
+            <a href="{{ url_for('main.info_page') }}" class="no-print">❮ 다시 입력하기</a>
+            <h1>식습관 분석 결과</h1>
+            <p class="subtitle">{{ session.get('user_name', '사용자') }} 님의 실시간 분석 리포트</p>
         </div>
 
-        <div id="top-problem-text-container" style="width: 100%; display: none;">
-            <p id="top-problem-text" style="font-size: 15px; color: rgba(255,255,255,0.85); margin: 0; font-weight: 400; line-height: 1.5; text-align: left;"></p>
-        </div>
-    </div>
+        <div class="dashboard-container">
 
-    {# 2. GMM 군집 확률 도넛 그래프 #}
-    <div class="auth-card" style="margin-bottom: 25px; text-align: center; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-        <h3 style="margin-bottom: 10px; text-align: left; font-size: 18px;">식단 유형 매칭 확률 (GMM)</h3>
-        <p style="font-size: 13px; color: #888; margin-bottom: 25px; text-align: left;">확률적 군집 분석을 통해 식습관 비중을 확인합니다.</p>
-        <div style="width: 100%; max-width: 260px; margin: 0 auto;">
-            <canvas id="gmmChart"></canvas>
-        </div>
-    </div>
+            <div class="side-panel">
 
-    {# 3. 상세 영양소 현황 및 레이더 차트 #}
-    <div class="auth-card" style="margin-bottom: 25px; background: white; padding: 25px; border-radius: 12px;">
-        <h3 style="margin-bottom: 25px;">영양소 섭취 상세</h3>
-        <div style="width: 100%; max-width: 320px; margin: 0 auto 30px auto;">
-            <canvas id="nutritionChart"></canvas>
-        </div>
-        <div id="nutrient-list-container" class="status-list">
+                <div id="result-box" class="result-type-box"
+                     style="background: linear-gradient(135deg, #00A343 0%, #00E676 100%);
+                        border-radius: 12px; padding: 20px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1); color: white;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div id="icon-wrapper" style="width: 50px; height: 50px; background: white; border-radius: 10px; display: flex; justify-content: center; align-items: center; flex-shrink: 0;">
+                            <div id="loading-spinner" class="spinner" style="width:15px; height:15px; border:2px solid #ccc; border-top:2px solid #333; border-radius:50%; animation:spin 1s linear infinite;"></div>
+                        </div>
+                        <div>
+                            <span id="type-label" style="font-size: 14px; opacity: 0.9; display: none;">식습관 유형</span>
+                            <h2 id="c_name_display" style="font-size: 20px; font-weight: 800; margin: 0; line-height: 1.2;">분석 중...</h2>
+                        </div>
+                    </div>
+                    <div id="top-problem-text-container" style="margin-top: 15px; display: none; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">
+                        <p id="top-problem-text" style="font-size: 13px; line-height: 1.5; margin: 0; opacity: 0.95;"></p>
+                    </div>
+                </div>
+
+                <div class="auth-card" style="background: white; border: 1px solid #e0e0e0; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-top: 4px;">
+                    <h3 style="margin-bottom: 20px; font-size: 16px; font-weight: 700; color: #333;">👤 신체 정보 및 활동</h3>
+
+                    <div class="slider-item">
+                        <div class="slider-header">
+                            <label class="slider-label">나이</label>
+                            <div><span id="val-age" class="slider-value" style="color:#2196F3;">{{ session.get('age', 30) }}</span><span class="slider-max"> 세</span></div>
+                        </div>
+                        <input type="range" id="input-age" min="10" max="90" value="{{ session.get('age', 30) }}" oninput="updateBaseInfo('age', this.value)" style="width: 100%; accent-color: #2196F3; cursor: pointer;">
+                    </div>
+
+                    <div class="slider-item">
+                        <div class="slider-header">
+                            <label class="slider-label">BMI (체질량지수)</label>
+                            <div>
+                                <span id="val-bmi" class="slider-value" style="color:#2196F3;">{{ session.get('bmi', 22.5) }}</span>
+                                <span class="slider-max"> kg/m²</span>
+                            </div>
+                        </div>
+                        <input type="range" id="input-bmi" min="15" max="40" step="0.1" value="{{ session.get('bmi', 22.5) }}" oninput="updateBaseInfo('bmi', this.value)" style="width: 100%; accent-color: #2196F3; cursor: pointer;">
+                    </div>
+
+                    <div class="slider-item">
+                        <div class="slider-header">
+                            <label class="slider-label">주간 유산소 운동 여부</label>
+                            <div>
+                                <span id="val-aerobic" class="slider-value" style="color:#2196F3;">
+                                    {% if session.get('aerobic')|int == 1 %}함{% else %}안함{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <input type="range" id="input-aerobic" min="0" max="1" step="1"
+                               value="{{ session.get('aerobic', 0) }}"
+                               oninput="updateBaseInfo('aerobic', this.value)"
+                               style="width: 100%; accent-color: #2196F3; cursor: pointer;">
+                    </div>
+                </div>
+
+                <div class="auth-card" style="background: white; border: 1px solid #e0e0e0; border-radius: 16px; padding: 20px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                    <h3 style="margin-bottom: 20px; font-size: 16px; font-weight: 700; color: #333;">⚙️ 영양소 조절</h3>
+
+                    <div class="slider-item">
+                        <div class="slider-header">
+                            <label class="slider-label">탄수화물</label>
+                            <div><span id="val-carb" class="slider-value">0</span><span class="slider-max"> / 500g</span></div>
+                        </div>
+                        <input type="range" id="input-carb" min="0" max="500" step="1" oninput="updateSliderValue('carb', this.value)" style="width: 100%; accent-color: #00A669; cursor: pointer;">
+                    </div>
+
+                    <div class="slider-item">
+                        <div class="slider-header">
+                            <label class="slider-label">단백질</label>
+                            <div><span id="val-prot" class="slider-value">0</span><span class="slider-max"> / 300g</span></div>
+                        </div>
+                        <input type="range" id="input-prot" min="0" max="300" step="1" oninput="updateSliderValue('prot', this.value)" style="width: 100%; accent-color: #00A669; cursor: pointer;">
+                    </div>
+
+                    <div class="slider-item">
+                        <div class="slider-header">
+                            <label class="slider-label">지방</label>
+                            <div><span id="val-fat" class="slider-value">0</span><span class="slider-max"> / 200g</span></div>
+                        </div>
+                        <input type="range" id="input-fat" min="0" max="200" step="1" oninput="updateSliderValue('fat', this.value)" style="width: 100%; accent-color: #00A669; cursor: pointer;">
+                    </div>
+
+                    <div class="slider-item">
+                        <div class="slider-header">
+                            <label class="slider-label">나트륨</label>
+                            <div><span id="val-sodium" class="slider-value">0</span><span class="slider-max"> / 5000mg</span></div>
+                        </div>
+                        <input type="range" id="input-sodium" min="0" max="5000" step="10" oninput="updateSliderValue('sodium', this.value)" style="width: 100%; accent-color: #00A669; cursor: pointer;">
+                    </div>
+
+                    <div class="slider-item" style="margin-bottom: 0;">
+                        <div class="slider-header">
+                            <label class="slider-label">당류</label>
+                            <div><span id="val-sugar" class="slider-value">0</span><span class="slider-max"> / 150g</span></div>
+                        </div>
+                        <input type="range" id="input-sugar" min="0" max="150" step="1" oninput="updateSliderValue('sugar', this.value)" style="width: 100%; accent-color: #00A669; cursor: pointer;">
+                    </div>
+                </div>
+
+                <div class="no-print" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <a href="{{ url_for('main.main_page') }}" style="display: flex; justify-content: center; align-items: center; height: 45px; background: #4B5563; color: white; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">홈</a>
+                    <button onclick="saveAsImage()" style="height: 45px; background: #00A669; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">이미지 저장</button>
+                </div>
             </div>
-    </div>
 
-    {# 4. 주요 문제점 & 개선 방안 #}
-    <div class="auth-card" style="margin-bottom: 25px;">
-        <h3 style="margin-bottom: 15px;">{{ session.get('user_name', '사용자') }} 님을 위한 식단 가이드</h3>
-        <div id="problem-list-container" style="display: grid; gap: 10px;">
-            <div style="display: flex; align-items: center; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
-                <p style="font-size: 14px; color: #555; margin: 0;">분석 결과 대기 중...</p>
+            <div class="main-panel">
+                <div style="display: grid; grid-template-columns: 1.2fr 1.5fr; gap: 20px; margin-bottom: 25px;">
+                    <div class="auth-card" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center;">
+                        <h3 style="text-align: left; font-size: 15px; margin-bottom: 20px;">매칭 확률 (GMM)</h3>
+                        <div style="width: 100%; max-width: 180px; margin: 0 auto;">
+                            <canvas id="gmmChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="auth-card" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                        <h3 style="font-size: 15px; margin-bottom: 20px;">영양소 밸런스</h3>
+                        <div style="width: 100%; max-width: 220px; margin: 0 auto;">
+                            <canvas id="nutritionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="auth-card" style="background: white; padding: 25px; border-radius: 12px; margin-bottom: 25px;">
+                    <h3 style="margin-bottom: 20px; font-size: 16px;">현 상태 상세 데이터</h3>
+                    <div id="nutrient-list-container" class="status-list"></div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="auth-card">
+                        <h3 style="font-size: 16px; margin-bottom: 15px;">⚠️ 발견된 문제점</h3>
+                        <div id="problem-list-container"></div>
+                    </div>
+                    <div class="auth-card">
+                        <h3 style="font-size: 16px; margin-bottom: 15px;">✅ 개선 가이드</h3>
+                        <div id="solution-container"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="auth-card" style="margin-bottom: 25px;">
-        <h3>유형 맞춤 개선 가이드</h3>
-        <div id="solution-container" style="display: grid; gap: 10px;">
-            </div>
-    </div>
+{% endblock %}
 
-    {# 5. 하단 액션 버튼 그룹 👊 #}
-    <div class="no-print" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px;">
-        <a href="{{ url_for('main.main_page') }}"
-           style="display: flex; justify-content: center; align-items: center; height: 48px; background-color: #4B5563; color: white; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">
-           홈으로
-        </a>
-        <button onclick="saveAsImage()"
-                style="display: flex; justify-content: center; align-items: center; height: 48px; background-color: #00A669; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 15px; flex: 1;">
-           결과 저장하기
-        </button>
-    </div>
-</div>
+{% block scripts %}
 
-<style>
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    @media print { button, a[href*="info_page"], div[style*="grid"] { display: none !important; } }
-</style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    // 1. 전역 변수 통합 관리
+    let userData = {
+        age: parseInt("{{ session.get('age', 30) }}"),
+        bmi: parseInt("{{ session.get('bmi', 25) }}"),
+        aerobic: parseInt("{{ session.get('aerobic', 150) }}"),
+        N_CHO: 300,
+        N_PROT: 70,
+        N_FAT: 50,
+        N_NA: 2000,
+        N_SUGAR: 30
+    };
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
+    let gmmChart = null;
+    let nutritionRadarChart = null;
+    let recDb = null;
+    let simulationTimeout = null;
+
+    // [수정된 부분] 초기 데이터 로딩 및 userData 동기화 로직 복구
     document.addEventListener('DOMContentLoaded', async () => {
         try {
-            // 1. 분석 결과와 추천 JSON 데이터를 동시에 병렬로 가져오기
+            const pathParts = window.location.pathname.split('/');
+            const resultId = pathParts[pathParts.length - 1];
+
+            let targetApiUrl = '/api/get_latest_result';
+            if (resultId && !isNaN(resultId) && resultId !== 'result' && resultId !== '') {
+                targetApiUrl = `/api/get_result/${resultId}`;
+            }
+
             const [resResponse, recResponse] = await Promise.all([
-                fetch('/api/get_latest_result'),
+                fetch(targetApiUrl),
                 fetch('/static/json/recommendations.json')
             ]);
 
             const json = await resResponse.json();
-            const recDb = await recResponse.json();
+            recDb = await recResponse.json();
 
             if (json.status === 'success') {
                 const res = json.data;
 
-                // --- [A. 상단 레이아웃 및 테마 설정] ---
-                // 1. 각 유형별 아이콘 포인트 컬러 정의 (배경은 초록 고정!) 🎨
-                const clusterIconColors = {
-                    "1": "#2196F3", // 파워 액티브 (블루)
-                    "-1": "#00C853", // 정석 (그린 - 배경과 톤온톤)
-                    "2": "#FFD54F", // 슬로우 식단 (옐로우)
-                    "0": "#FF5252"  // 집중 관리 (레드)
-                };
+                // ★ 여기가 핵심! 서버에서 가져온 초기값으로 전역 변수 동기화
+                userData.N_CHO = res.n_cho;
+                userData.N_PROT = res.n_prot;
+                userData.N_FAT = res.n_fat;
+                userData.N_NA = res.n_na;
+                userData.N_SUGAR = res.n_sugar;
+                userData.age = res.age;
+                userData.bmi = res.bmi;
+                userData.aerobic = res.pa_aerobic;
 
-                // 2. 현재 유저의 포인트 컬러 결정
-                const theme_color = clusterIconColors[res.cluster_id.toString()] || "#00C853";
+            // 2. 영양소 슬라이더 및 텍스트 업데이트
+            if(document.getElementById('input-carb')) document.getElementById('input-carb').value = res.n_cho;
+            if(document.getElementById('input-prot')) document.getElementById('input-prot').value = res.n_prot;
+            if(document.getElementById('input-fat')) document.getElementById('input-fat').value = res.n_fat;
+            if(document.getElementById('input-sugar')) document.getElementById('input-sugar').value = res.n_sugar;
+            if(document.getElementById('input-sodium')) document.getElementById('input-sodium').value = res.n_na;
 
-                // 3. 상단 박스 배경: 항상 초록색 그라데이션으로 고정 👊
-                const rb = document.getElementById('result-box');
-                if (rb) {
-                    rb.style.background = 'linear-gradient(135deg, #00A343 0%, #00E676 100%)';
-                }
+            // 3. ★ 추가: 나이, BMI, 운동여부 슬라이더 업데이트
+            if(document.getElementById('input-age')) document.getElementById('input-age').value = res.age;
+            if(document.getElementById('input-bmi')) document.getElementById('input-bmi').value = res.bmi;
+            if(document.getElementById('input-aerobic')) document.getElementById('input-aerobic').value = res.pa_aerobic;
 
-                // 4. UI 텍스트 및 레이아웃 활성화
-                document.getElementById('type-label').style.display = 'block';
-                document.getElementById('top-problem-text-container').style.display = 'block';
+            // 4. ★ 추가: 옆에 표시되는 숫자/텍스트 업데이트
+            if(document.getElementById('val-age')) document.getElementById('val-age').innerText = res.age;
+            if(document.getElementById('val-bmi')) document.getElementById('val-bmi').innerText = res.bmi;
+            if(document.getElementById('val-aerobic')) {
+                // 운동 여부는 0/1 대신 함/안함으로 표시
+                document.getElementById('val-aerobic').innerText = (parseInt(res.pa_aerobic) === 1) ? "함" : "안함";
+            }
 
-                // 5. 유형 이름 출력
-                const nameDisplay = document.getElementById('c_name_display');
-                nameDisplay.innerText = res.cluster_name;
-                nameDisplay.style.color = "#FFFFFF";
+            // 기존 영양소 텍스트 업데이트 (기존 유지)
+            if(document.getElementById('val-carb')) document.getElementById('val-carb').innerText = Math.round(res.n_cho);
+            if(document.getElementById('val-prot')) document.getElementById('val-prot').innerText = Math.round(res.n_prot);
+            if(document.getElementById('val-fat')) document.getElementById('val-fat').innerText = Math.round(res.n_fat);
+            if(document.getElementById('val-sugar')) document.getElementById('val-sugar').innerText = Math.round(res.n_sugar);
+            if(document.getElementById('val-sodium')) document.getElementById('val-sodium').innerText = Math.round(res.n_na);
 
-                // 6. 클러스터별 맞춤 헤더 메시지 꽂기
-                const clusterHeaders = {
-                    "1": "활동량은 좋지만, 높은 나트륨 섭취에 주의가 필요한 유형입니다.",
-                    "-1": "탄단지 비율과 운동량 모두 이상적입니다. 지금의 완벽한 밸런스를 유지하세요!",
-                    "2": "탄수화물 비중이 다소 높은 '안정 지향형' 식단입니다.",
-                    "0": "높은 당과 나트륨, 낮은 활동량이 확인되었습니다. 지금 바로 식단 개선이 필요합니다."
-                };
-                const headerMessage = clusterHeaders[res.cluster_id.toString()] || "영양소 섭취 데이터를 분석하여 맞춤형 리포트를 생성했습니다.";
-                document.getElementById('top-problem-text').innerText = headerMessage;
-
-                // 7. 아이콘 업데이트: 체크 표시만 theme_color 적용 👊
-                document.getElementById('icon-wrapper').innerHTML = `
-                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="12" r="10" fill="white"/>
-                        <path d="M17 9L10 16L7 13"
-                              stroke="${theme_color}"
-                              stroke-width="3"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"/>
-                    </svg>`;
-
-                // --- [B. 영양소 데이터 계산 및 문제점 추출] ---
-                const sugar_limit = (parseInt(res.sex) === 1) ? 65 : 50;
-                const carb_p = Math.round((res.carb_ratio || 0) * 100);
-                const prot_p = Math.round((res.prot_ratio || 0) * 100);
-                const fat_p = Math.round((res.fat_ratio || 0) * 100);
-                const na_p = Math.round((parseFloat(res.n_na || 0) / 2000) * 100);
-                const sugar_p = Math.round((parseFloat(res.n_sugar || 0) / sugar_limit) * 100);
-
-                const threshold = 2; // 팁과 경고를 나누는 기준 (%)
-                const problems = [];
-                const tips = [];
-
-                // 1) 탄수화물
-                if (carb_p < 55) {
-                    (55 - carb_p <= threshold) ? tips.push(`💡 팁: 탄수화물 ${55 - carb_p}%만 더 채워볼까요? (현재 ${carb_p}%)`) : problems.push(`탄수화물이 권장량보다 부족합니다. (${carb_p}%)`);
-                } else if (carb_p > 65) {
-                    (carb_p - 65 <= threshold) ? tips.push(`💡 팁: 탄수화물을 조금만 줄이면 완벽해요! (현재 ${carb_p}%)`) : problems.push(`탄수화물이 권장량을 초과했습니다. (${carb_p}%)`);
-                }
-
-                // 2) 단백질
-                if (prot_p < 7) {
-                    (7 - prot_p <= threshold) ? tips.push(`💡 단백질을 조금만 더 챙겨주세요!`) : problems.push(`단백질 부족 (${prot_p}%)`);
-                } else if (prot_p > 20) {
-                    (prot_p - 20 <= threshold) ? tips.push(`💡 단백질 비중이 살짝 높네요.`) : problems.push(`단백질 과다 (${prot_p}%)`);
-                }
-
-                // 3) 지방
-                if (fat_p < 15) {
-                    (15 - fat_p <= threshold) ? tips.push(`💡 건강한 지방을 조금 더 섭취해보세요.`) : problems.push(`지방 섭취가 너무 부족합니다. (${fat_p}%)`);
-                } else if (fat_p > 30) {
-                    (fat_p - 30 <= threshold) ? tips.push(`💡 지방 비중이 살짝 높습니다.`) : problems.push(`지방 섭취가 권장량을 초과했습니다. (${fat_p}%)`);
-                }
-
-                // 4) 당류
-                const current_sugar = parseFloat(res.n_sugar || 0);
-                if (current_sugar > sugar_limit) {
-                    (current_sugar - sugar_limit <= 5) ? tips.push(`💡 당류가 권장량보다 살짝 높아요.`) : problems.push(`당류 섭취가 너무 많습니다. (현재 ${current_sugar}g)`);
-                }
-
-                // 5) 나트륨
-                const current_na = parseFloat(res.n_na || 0);
-                if (current_na > 2000) {
-                    (current_na - 2000 <= 200) ? tips.push(`💡 나트륨이 약간 높네요. 국물은 조금 남겨보세요!`) : problems.push(`나트륨 섭취가 권장량(2000mg)을 초과했습니다.`);
-                } else if (current_na > 50 && current_na < 500) {
-                    problems.push(`나트륨 섭취가 너무 적습니다(${current_na.toFixed(1)}mg). 적절한 염분 섭취가 필요합니다.`);
-                } else
-                    problems.push(`나트륨 정보가 거의 없습니다. 정확한 분석을 위해 소금/간장 섭취량을 확인해 주세요.`);
-
-                // --- [C. UI 반영 함수 호출] ---
-                renderProblemList(tips, problems);
-                renderSolutions(res, recDb, theme_color, current_na);
-
-                // --- [D. 차트 구현부] ---
-                // 1) GMM 도넛 차트
-                new Chart(document.getElementById('gmmChart'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: res.cluster_names,
-                        datasets: [{
-                            data: res.probabilities.map(p => (p * 100).toFixed(1)),
-                            backgroundColor: ['#00C853', '#FF5252', '#2196F3', '#FFD54F'],
-                            borderWidth: 2,
-                            hoverOffset: 15
-                        }]
-                    },
-                    options: { cutout: '65%', plugins: { legend: { position: 'bottom' } } }
-                });
-
-                // 2) 영양소 막대 차트
-                const nutrientData = [
-                    {name: '탄수화물', val: parseFloat(res.n_cho).toFixed(1), p: carb_p, unit: 'g', lim: '55~65%'},
-                    {name: '단백질', val: parseFloat(res.n_prot).toFixed(1), p: prot_p, unit: 'g', lim: '7~20%'},
-                    {name: '지방', val: parseFloat(res.n_fat).toFixed(1), p: fat_p, unit: 'g', lim: '15~30%'},
-                    {name: '당류', val: parseFloat(res.n_sugar).toFixed(1), p: sugar_p, unit: 'g', lim: sugar_limit + 'g'},
-                    {name: '나트륨', val: parseFloat(res.n_na).toFixed(1), p: na_p, unit: 'mg', lim: '2000mg'}
-                ];
-
-                document.getElementById('nutrient-list-container').innerHTML = nutrientData.map(item => {
-                    let is_caution = (item.name === '탄수화물' && (item.p < 55 || item.p > 65)) ||
-                                     (item.name === '단백질' && (item.p < 7 || item.p > 20)) ||
-                                     (item.name === '지방' && (item.p < 15 || item.p > 30)) ||
-                                     (['당류', '나트륨'].includes(item.name) && item.p > 100);
-                    const item_color = is_caution ? '#FF6D00' : '#00C853';
-
-                    return `
-                    <div class="status-item" style="margin-bottom: 18px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                            <span style="font-size: 14px;">${item.name} <small style="color:#aaa;">(권장:${item.lim})</small></span>
-                            <span style="font-size: 12px; font-weight: 700;">${item.val}${item.unit} (${item.p}%)</span>
-                        </div>
-                        <div style="width: 100%; height: 8px; background-color: #eee; border-radius: 10px; overflow: hidden;">
-                            <div style="height: 100%; background-color: ${item_color}; width: ${item.p > 100 ? 100 : item.p}%;"></div>
-                        </div>
-                    </div>`;
-                }).join('');
-
-                // 3) 영양소 레이더 차트
-                new Chart(document.getElementById('nutritionChart'), {
-                    type: 'radar',
-                    data: {
-                        labels: ['탄수화물', '단백질', '지방', '당류', '나트륨'],
-                        datasets: [{
-                            data: [carb_p, prot_p, fat_p, sugar_p, na_p],
-                            backgroundColor: 'rgba(0, 200, 83, 0.1)',
-                            borderColor: theme_color,
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { display: false } } },
-                        plugins: { legend: { display: false } }
-                    }
-                });
+            updateDashboard(res);
             }
         } catch (e) { console.error("결과 로딩 중 오류:", e); }
     });
 
+    // 2. 신체 정보 업데이트 (나이, 키, 몸무게 등)
+    function updateBaseInfo(type, value) {
+        const valElement = document.getElementById(`val-${type}`);
+
+        if (valElement) {
+            if (type === 'aerobic') {
+                // ★ 숫자를 글자로 강제 치환
+                valElement.innerText = (parseInt(value) === 1) ? "함" : "안함";
+            } else {
+                // 다른 슬라이더(나이, BMI 등)는 숫자 그대로 표시
+                valElement.innerText = value;
+            }
+        }
+
+        // 전역 변수 데이터 업데이트 (DB 저장용 숫자 유지)
+        userData[type] = parseFloat(value);
+
+        // 시뮬레이션 실행
+        if (typeof runSimulation === "function") runSimulation();
+    }
+
+    // 3. 영양소 업데이트 (탄, 단, 지, 나, 당)
+    function updateSliderValue(type, value) {
+        const valElement = document.getElementById(`val-${type}`);
+        if (valElement) valElement.innerText = Number(value).toLocaleString();
+
+        // 서버가 기대하는 키값(N_CHO 등)으로 매핑하여 업데이트
+        const map = { 'carb': 'N_CHO', 'prot': 'N_PROT', 'fat': 'N_FAT', 'sodium': 'N_NA', 'sugar': 'N_SUGAR' };
+        if(map[type]) userData[map[type]] = parseInt(value);
+
+        runSimulation();
+    }
+
     /**
-     * 💡 문제점 및 팁 리스트 렌더링 👊
+     * 실시간 시뮬레이션 실행 함수 🚀
      */
-    function renderProblemList(tips, problems) {
-        const container = document.getElementById('problem-list-container');
+    async function runSimulation() {
+    clearTimeout(simulationTimeout);
+    simulationTimeout = setTimeout(async () => {
+        try {
+            const payload = {
+                age: userData.age,
+                bmi: userData.height,
+                PA_AEROBIC: userData.aerobic,
+                N_CHO: userData.N_CHO,
+                N_PROT: userData.N_PROT,
+                N_FAT: userData.N_FAT,
+                N_NA: userData.N_NA,
+                N_SUGAR: userData.N_SUGAR
+            };
+
+            const response = await fetch('/api/simulate_analysis', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const resJson = await response.json();
+            if (resJson.status === 'success') {
+                updateDashboard(resJson.data);
+            }
+        } catch (e) {
+            console.error("통신 장애:", e);
+        }
+    }, 300);
+}
+
+    /**
+     * 2. 메인 대시보드 업데이트 함수
+     */
+    function updateDashboard(res) {
+        // 1. 유형별 테마 설정 (아이콘 색상 & 배경 그라데이션)
+        const clusterThemes = {
+            "-1": { // 정석
+                main: "#00C853",
+                bg: "linear-gradient(135deg, #00A343 0%, #00E676 100%)"
+            },
+            "0": { // 주의 (Deep Orange to Gold) - 식욕 자극 끝판왕
+                main: "#EA580C",
+                bg: "linear-gradient(135deg, #E11D48 0%, #FBBF24 100%)"
+            },
+            "1": { // 활동 (Royal Blue to Sky Blue) - 청량함
+                main: "#1D4ED8",
+                bg: "linear-gradient(135deg, #1D4ED8 0%, #60A5FA 100%)"
+            },
+            "2": { // 탄탄한 기초 안정 (요청하신 노랑 계열 - 고대비 골드)
+                main: "#92400E",
+                bg: "linear-gradient(135deg, #B45309 0%, #FBBF24 50%, #FEF3C7 100%)"
+            }
+        };
+
+        const currentId = res.cluster_id.toString();
+        const theme = clusterThemes[currentId] || clusterThemes["-1"];
+
+        // 2. 패널 전체 배경색 변경
+        const resultBox = document.getElementById('result-box');
+        if (resultBox) {
+            resultBox.style.background = theme.bg;
+            resultBox.style.transition = "background 0.5s ease"; // 부드러운 전환 효과
+        }
+
+        // 3. 아이콘 색상 업데이트 (기존 로직 유지하되 theme.main 사용)
+        const iconWrapper = document.getElementById('icon-wrapper');
+        if (iconWrapper) {
+            iconWrapper.innerHTML = `
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 6L9 17L4 12" stroke="${theme.main}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>`;
+        }
+
+        // 4. 텍스트 업데이트
+        document.getElementById('type-label').style.display = 'block';
+        document.getElementById('top-problem-text-container').style.display = 'block';
+        document.getElementById('c_name_display').innerText = res.cluster_name;
+
+        const clusterHeaders = {
+            "1": "활동량은 좋지만, 높은 나트륨에 주의하세요.",
+            "-1": "이상적인 밸런스입니다. 유지하세요!",
+            "2": "탄수화물 비중이 높은 안정 지향형입니다.",
+            "0": "식단 개선이 시급한 유형입니다."
+        };
+        document.getElementById('top-problem-text').innerText = clusterHeaders[currentId] || "분석 리포트입니다.";
+
+        // [이하 기존 계산 및 렌더링 로직 동일...]
+        const sugar_limit = (parseInt(res.sex) === 1) ? 65 : 50;
+        const carb_p = Math.round((res.carb_ratio || 0) * 100);
+        const prot_p = Math.round((res.prot_ratio || 0) * 100);
+        const fat_p = Math.round((res.fat_ratio || 0) * 100);
+        const na_p = Math.round((parseFloat(res.n_na || 0) / 2000) * 100);
+        const sugar_p = Math.round((parseFloat(res.n_sugar || 0) / sugar_limit) * 100);
+
+        // 테마 색상을 차트와 솔루션에도 전달 (일관성 유지)
+        updateCharts(res, carb_p, prot_p, fat_p, sugar_p, na_p, theme.main);
+        renderNutrientList(res, carb_p, prot_p, fat_p, sugar_p, na_p, sugar_limit);
+        renderSolutions(res, recDb, theme.main, parseFloat(res.n_na));
+
+        // ★ 이 줄을 수정하세요! 세 번째 인자로 res를 꼭 넘겨줘야 합니다.
+        renderProblemList(res.tips || [], res.problems || [], res);
+    }
+
+    /**
+     * 3. 영양소 상세 리스트 및 프로그레스바 렌더링 (애니메이션 적용 버전)
+     */
+    function renderNutrientList(res, carb_p, prot_p, fat_p, sugar_p, na_p, sugar_limit) {
+        const nutrientData = [
+            {id: 'carb', name: '탄수화물', val: res.n_cho, p: carb_p, unit: 'g', lim: '55~65%'},
+            {id: 'prot', name: '단백질', val: res.n_prot, p: prot_p, unit: 'g', lim: '7~20%'},
+            {id: 'fat', name: '지방', val: res.n_fat, p: fat_p, unit: 'g', lim: '15~30%'},
+            {id: 'sugar', name: '당류', val: res.n_sugar, p: sugar_p, unit: 'g', lim: sugar_limit + 'g'},
+            {id: 'na', name: '나트륨', val: res.n_na, p: na_p, unit: 'mg', lim: '2000mg'}
+        ];
+
+        const container = document.getElementById('nutrient-list-container');
         if (!container) return;
 
-        let html = '';
-        html += tips.map(t => `
+        // 1. 컨테이너가 비어있다면 최초 1회 HTML 뼈대 생성 (Init)
+        if (container.innerHTML.trim() === '') {
+            container.innerHTML = nutrientData.map(item => `
+                <div class="status-item" style="margin-bottom: 18px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span style="font-size: 14px;">${item.name} <small style="color:#aaa;">(권장:${item.lim})</small></span>
+                        <span id="nutri-text-${item.id}" style="font-size: 12px; font-weight: 700;">0${item.unit} (0%)</span>
+                    </div>
+                    <div style="width: 100%; height: 8px; background-color: #eee; border-radius: 10px; overflow: hidden;">
+                        <div id="nutri-bar-${item.id}" style="height: 100%; width: 0%; background-color: #00C853; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s ease;"></div>
+                    </div>
+                </div>`).join('');
+
+            // 강제로 브라우저 렌더링 큐를 한번 비워주어 초기 0% 상태를 인식하게 함
+            container.getBoundingClientRect();
+        }
+
+        // 2. 이미 뼈대가 있다면 값과 게이지 바의 너비만 업데이트 (Update)
+        nutrientData.forEach(item => {
+            let is_caution = (item.name === '탄수화물' && (item.p < 55 || item.p > 65)) ||
+                             (['당류', '나트륨'].includes(item.name) && item.p > 100);
+            const item_color = is_caution ? '#FF6D00' : '#00C853'; // 경고 수치일 때 주황색
+            const barWidth = Math.min(Math.max(item.p, 0), 100); // 최대 100% 제한
+
+            const textEl = document.getElementById(`nutri-text-${item.id}`);
+            const barEl = document.getElementById(`nutri-bar-${item.id}`);
+
+            if (textEl) {
+                textEl.innerText = `${Math.round(item.val)}${item.unit} (${item.p}%)`;
+                textEl.style.color = is_caution ? '#FF6D00' : '#333'; // 텍스트 색상도 맞춰서 변경
+            }
+            if (barEl) {
+                barEl.style.width = `${barWidth}%`;
+                barEl.style.backgroundColor = item_color;
+            }
+        });
+    }
+
+    /**
+     * 차트 객체 관리 및 업데이트 📈
+     */
+    function updateCharts(res, carb_p, prot_p, fat_p, sugar_p, na_p, theme_color) {
+        const probData = res.probabilities.map(p => (p * 100).toFixed(1));
+
+        // 1) GMM 도넛 차트
+        if (!gmmChart) {
+            gmmChart = new Chart(document.getElementById('gmmChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: res.cluster_names || ["정석", "집중", "액티브", "슬로우"],
+                    datasets: [{ data: probData, backgroundColor: ['#00C853', '#FF5252', '#2196F3', '#FFD54F'], borderWidth: 2 }]
+                },
+                options: { cutout: '65%', plugins: { legend: { position: 'bottom' } } }
+            });
+        } else {
+            gmmChart.data.datasets[0].data = probData;
+            gmmChart.update();
+        }
+
+        // 2) 레이더 차트
+        if (!nutritionRadarChart) {
+            nutritionRadarChart = new Chart(document.getElementById('nutritionChart'), {
+                type: 'radar',
+                data: {
+                    labels: ['탄수화물', '단백질', '지방', '당류', '나트륨'],
+                    datasets: [{ data: [carb_p, prot_p, fat_p, sugar_p, na_p], backgroundColor: 'rgba(0, 200, 83, 0.1)', borderColor: theme_color, borderWidth: 2 }]
+                },
+                options: { scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { display: false } } }, plugins: { legend: { display: false } } }
+            });
+        } else {
+            nutritionRadarChart.data.datasets[0].data = [carb_p, prot_p, fat_p, sugar_p, na_p];
+            nutritionRadarChart.data.datasets[0].borderColor = theme_color;
+            nutritionRadarChart.update();
+        }
+    }
+
+
+    function renderProblemList(tips, problems, res) {
+        const container = document.getElementById('problem-list-container');
+        if (!container || !res) return;
+
+        let autoProblems = [];
+
+        // 데이터 추출 및 단위 변환
+        const c_ratio = parseFloat(res.carb_ratio || 0) * 100;
+        const p_ratio = parseFloat(res.prot_ratio || 0) * 100;
+        const f_ratio = parseFloat(res.fat_ratio || 0) * 100;
+        const n_na = parseFloat(res.n_na || 0);
+        const n_sugar = parseFloat(res.n_sugar || 0);
+
+        const sex = parseInt(res.sex || 1);
+        const sugar_limit = (sex === 1) ? 65 : 50;
+        const na_limit = 2000;
+
+        // 1. 나트륨 과다 (권장 2000mg 대비)
+        if (n_na > na_limit) {
+            const excess = Math.round(n_na - na_limit);
+            autoProblems.push(`나트륨이 권장량보다 <b>${excess.toLocaleString()}mg 과다</b>합니다. 조절이 필요합니다.`);
+        }
+
+        // 2. 당류 과다 (성별 권장량 대비)
+        if (n_sugar > sugar_limit) {
+            const excess = Math.round(n_sugar - sugar_limit);
+            autoProblems.push(`당류가 적정량보다 <b>${excess}g 과다</b>합니다. 섭취량을 줄여보세요.`);
+        }
+
+        // 3. 탄수화물 비중 (70% 기준)
+        if (c_ratio > 70) {
+            const excess_p = Math.round(c_ratio - 70);
+            autoProblems.push(`탄수화물 비중이 70%를 초과했습니다. <b>약 ${excess_p}%만큼 줄여야</b> 합니다.`);
+        } else if (c_ratio > 0 && c_ratio < 45) {
+            const lack_p = Math.round(45 - c_ratio);
+            autoProblems.push(`탄수화물 에너지가 <b>${lack_p}% 부족</b>합니다. 적절한 섭취가 필요합니다.`);
+        }
+
+        // 4. 단백질 부족 (10% 기준)
+        if (p_ratio > 0 && p_ratio < 10) {
+            const lack_p = Math.round(10 - p_ratio);
+            autoProblems.push(`단백질 비중이 낮습니다. <b>약 ${lack_p}% 더 보충</b>이 필요합니다.`);
+        }
+
+        // HTML 생성 로직
+        const combinedProblems = [...(problems || []), ...autoProblems];
+        let html = (tips || []).map(t => `
             <div style="display:flex; align-items:center; padding:12px; background:#E3F2FD; border-left:4px solid #2196F3; border-radius:6px; margin-bottom:8px;">
                 <p style="font-size:14px; margin:0; color:#1565C0; font-weight:600;">${t}</p>
             </div>`).join('');
 
-        html += problems.map(p => `
+        html += combinedProblems.map(p => `
             <div style="display:flex; align-items:center; padding:12px; background:#FFF3F3; border-left:4px solid #FF4D4F; border-radius:6px; margin-bottom:8px;">
                 <span style="color:#FF4D4F; margin-right:10px;">⚠️</span>
                 <p style="font-size:14px; margin:0; color:#555;">${p}</p>
             </div>`).join('');
 
-        if (tips.length === 0 && problems.length === 0) {
-            html = `<div style="padding:15px; background:#E8F5E9; color:#2E7D32; border-radius:8px;">✅ 식단이 아주 훌륭합니다!</div>`;
+        // ★ 이 부분이 준수님이 요청하신 기존 멘트 유지 구간입니다.
+        if (html.trim() === "") {
+            container.innerHTML = `<div style="padding:15px; background:#E8F5E9; color:#2E7D32; border-radius:8px;">✅ 식단이 아주 훌륭합니다!</div>`;
+        } else {
+            container.innerHTML = html;
         }
-        container.innerHTML = html;
     }
 
-    /**
-     * 🚀 맞춤 개선 방안 생성 (모순 제거 필터링 적용) 👊
-     */
     function renderSolutions(res, recDb, theme_color, current_na) {
         const solutionContainer = document.getElementById('solution-container');
-        if (!solutionContainer) return;
-
+        if (!solutionContainer || !recDb) return;
         let finalSolutions = [];
-
-        // 1. 유형별 가이드 필터링 (나트륨 모순 방지)
         let baseGuides = recDb.clusters[res.cluster_id.toString()] || [];
-
-        if (current_na < 500) {
-            baseGuides = baseGuides.filter(guide => !guide.desc.includes("나트륨"));
-        }
+        if (current_na < 500) baseGuides = baseGuides.filter(guide => !guide.desc.includes("나트륨"));
 
         baseGuides.forEach(guide => {
             if (guide.exclude_if) {
-                try {
-                    const checkExclude = new Function('res', `return ${guide.exclude_if}`);
-                    if (checkExclude(res)) return;
-                } catch (e) { console.error("Exclude Condition Error", e); }
+                try { if (new Function('res', `return ${guide.exclude_if}`)(res)) return; } catch (e) {}
             }
             finalSolutions.push(guide);
         });
 
-        // 2. 영양소/조건별 퀘스트 추가
-        recDb.nutrients.forEach(n => {
-            try {
-                const checkCondition = new Function('res', `return ${n.condition}`);
-                if (checkCondition(res) && finalSolutions.length < 4) {
-                    finalSolutions.push({ title: n.title, desc: n.desc });
-                }
-            } catch (e) { console.error("Nutrient Condition Error", e); }
-        });
-
-        // 3. 화면 출력
         solutionContainer.innerHTML = finalSolutions.map(s => `
             <div style="padding: 15px; border: 1px solid #f0f0f0; border-left: 4px solid ${theme_color}; border-radius: 6px; background: #fafafa; margin-bottom: 10px;">
                 <strong style="display: block; font-size: 15px; color: ${theme_color}; margin-bottom: 4px;">${s.title}</strong>
                 <p style="font-size: 13px; color: #666; margin: 0; line-height: 1.5;">${s.desc}</p>
-            </div>
-        `).join('');
+            </div>`).join('');
     }
 
-    /**
-     * 📸 결과 화면 이미지로 저장
-     */
     async function saveAsImage() {
         const element = document.querySelector('.auth-wrapper');
-        if (!element) return alert("캡처 대상을 찾을 수 없습니다.");
-
         const noPrintElements = document.querySelectorAll('.no-print');
         noPrintElements.forEach(el => { el.style.visibility = 'hidden'; });
-
         try {
-            const canvas = await html2canvas(element, {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: "#E8F7F3"
-            });
+            const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: "#E8F7F3" });
             const link = document.createElement('a');
             link.href = canvas.toDataURL("image/png");
             link.download = `Report_${new Date().getTime()}.png`;
             link.click();
-        } catch (err) {
-            console.error("저장 실패:", err);
-        } finally {
-            noPrintElements.forEach(el => { el.style.visibility = 'visible'; });
-        }
+        } catch (err) { console.error("저장 실패:", err); }
+        finally { noPrintElements.forEach(el => { el.style.visibility = 'visible'; }); }
     }
 </script>
 {% endblock %}

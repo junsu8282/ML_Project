@@ -14,6 +14,21 @@ body {
     margin: 0;
 }
 
+/* 모든 페이지를 감싸는 쫀쫀한 너비의 래퍼 */
+.auth-wrapper {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    text-align: center;
+    margin-top: 70px; /* 네비바 높이 고려 */
+    flex: 1;           /* [핵심] 푸터를 화면 맨 아래로 밀어내는 힘! 🚀 */
+}
+
+/* 넓은 너비 (정보 입력용) */
+.auth-wrapper.wide {
+    max-width: 720px; /* 여기서 원하는 만큼 넓히세요! (600px~700px 추천) */
+}
+
 .navbar {
     position: fixed;
     top: 0;
@@ -42,7 +57,9 @@ body {
 /* [2] PC용 메뉴 스타일 (기본) 👊 */
 .nav-menu {
     display: flex; /* PC에선 나란히 보임 🚀 */
-    gap: 15px;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
 }
 
 /* [3] 햄버거 버튼 (평소엔 숨김) 🚀 */
@@ -66,27 +83,146 @@ body {
 
 /* [4] 📱 화면이 768px보다 작아질 때 (PC 창 조절 포함) 👊 */
 @media (max-width: 768px) {
-    /* PC 메뉴를 공중에 띄워서 숨겨버림 🚀 */
+    /* [1] 햄버거 버튼 복구 👊 */
+    .hamburger {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: space-between;
+        width: 24px;
+        height: 18px;
+        z-index: 1100;
+        margin-left: auto;
+    }
+
+    /* 햄버거 막대기 색상 */
+    .hamburger span {
+        display: block;
+        height: 3px;
+        width: 100%;
+        background-color: #00A669 !important; /* 초록색 복구 🚀 */
+        border-radius: 3px;
+    }
+
+    /* [2] 네비게이션 메뉴 전체창 */
     .nav-menu {
-        display: none; /* [핵심] 공간을 아예 지워버려야 로고가 안 밀립니다 👊 */
+        display: none;
         position: fixed;
         top: 60px;
-        right: 0;
+        left: 0;
         width: 100%;
-        background: white;
+        box-sizing: border-box;
+        background-color: white !important;
         flex-direction: column;
-        padding: 20px 0;
-        box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        align-items: flex-end;
+        padding: 40px 30px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        z-index: 1000;
+        gap: 20px;
     }
 
-    /* 햄버거 클릭 시 나타날 때만 flex로 변경 🚀 */
     .nav-menu.active {
-        display: flex;
+        display: flex !important;
     }
 
-    /* 드디어 햄버거 버튼 등장! 👊 */
-    .hamburger {
-        display: flex;
+    /* [3] 불필요 요소 제거 */
+    .welcome-msg, .dropdown-arrow, .dropdown-divider {
+        display: none !important;
+    }
+
+    /* [4] 유저 정보 컨테이너 */
+    .user-dropdown-container {
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-end !important;
+    }
+
+    .user-name-tag {
+        display: block !important;
+        font-size: 17px !important;
+        font-weight: 800 !important;
+        color: #1e293b !important;
+        margin-bottom: 20px !important;
+        text-align: right !important;
+        width: 100%;
+    }
+
+    /* [5] 메뉴 리스트 (카드 형태 제거 & 투명화) 👊 */
+.user-dropdown-menu {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-end !important;
+        position: static !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+
+        /* 메뉴 간 간격을 기존 18px -> 12px로 좁힘 */
+        gap: 0 !important;
+    }
+
+    .user-dropdown-menu a {
+        display: block !important;
+        font-size: 16px !important; /* 17px에서 16px로 아주 살짝 조정 */
+        color: #64748b !important;
+        text-align: right !important;
+        width: 100% !important;
+        text-decoration: none !important;
+        pointer-events: auto !important;
+
+        /* 구분선 및 간격 보정 🚀 */
+        padding: 12px 0 !important; /* 위아래 패딩으로 간격 조절 */
+        border-bottom: 1px solid #f1f5f9 !important; /* 연한 구분선 추가 */
+        transition: all 0.2s ease !important;
+    }
+
+    /* 터치하거나 호버했을 때 살짝 왼쪽으로 움직이며 색상 변경 */
+    .user-dropdown-menu a:hover,
+    .user-dropdown-menu a:active {
+        color: #00A669 !important; /* 초록색으로 변경 */
+        transform: translateX(-5px) !important; /* 왼쪽으로 살짝 밀리는 효과 */
+    }
+
+    .user-dropdown-menu a:last-child {
+        color: #ff4d4d !important; /* 기본 상태도 연한 빨강 (취향껏 조절) */
+        font-weight: 700 !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    /* 로그아웃 버튼 호버/터치 시 */
+    .user-dropdown-menu a:last-child:hover,
+    .user-dropdown-menu a:last-child:active {
+        color: #ff0000 !important; /* 호버 시 아주 진한 빨강 👊 */
+        transform: translateX(-5px) !important; /* 동일한 무빙 애니메이션 */
+    }
+
+    /* [6] 시작하기 버튼 */
+    .nav-start-btn {
+        display: block !important;
+        margin-top: 10px !important;
+        width: auto !important;
+        min-width: 140px;
+        text-align: center;
+        padding: 12px 25px;
+        background-color: #00A669 !important;
+        color: white !important;
+        border-radius: 8px;
+        align-self: flex-end;
+
+        /* 버튼 애니메이션 */
+        transition: transform 0.2s ease, background-color 0.2s ease !important;
+    }
+
+    .nav-start-btn:hover,
+    .nav-start-btn:active {
+        background-color: #008f5a !important; /* 조금 더 진한 초록 */
+        transform: scale(1.05) !important; /* 살짝 커지는 효과 */
     }
 }
 
@@ -124,7 +260,7 @@ body {
     position: absolute;
 
     /* 원 안에서 간격 */
-    top: 6px; left: 6px; right: 6px; bottom: 6px;
+    top: 4px; left: 4px; right: 4px; bottom: 4px;
 
     border: 1.5px solid white;
     border-radius: 50%;
@@ -135,7 +271,6 @@ body {
 #navLogoIcon svg {
     position: relative;
     z-index: 2; /* 고리보다 위로! 🚀 */
-    fill: none;
 
     /* 32px 원 안에서는 SVG가 14~16px일 때 가장 예쁩니다 */
     width: 14px;
@@ -167,23 +302,21 @@ body {
     transform: rotate(15deg);
 }
 
-/* 오른쪽 로그인 버튼 */
+/* 로그인, 로그아웃, 회원가입 버튼 모두에 적용 */
 .nav-login-btn {
     display: inline-block;
-    padding: 8px 10px;
     color: #00A669;
+    margin-right: 5px;
     font-size: 15px;
     font-weight: 600;
     text-decoration: none;
     transition: all 0.3s ease;
-
     will-change: transform;
-    -webkit-font-smoothing: antialiased;
 }
 
 .nav-login-btn:hover {
-    color: #008f5a; /* 더 진한 녹색 */
-    transform: scale(1.05); /* 살짝 커지는 텐션 */
+    color: #008f5a;
+    transform: scale(1.05);
 }
 
 /* 공통 버튼 스타일 */
@@ -200,13 +333,137 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 30; /* 슬라이드보다 위에 */
     transition: all 0.3s ease;
 }
 
 .nav-btn:hover {
     background: rgba(0, 0, 0, 0.5); /* 호버 시 더 진하게 */
     transform: translateY(-50%) scale(1.1); /* 살짝 커짐 */
+}
+
+/* [시작하기] 버튼만 특별 강조 */
+.nav-start-btn {
+    background-color: #00A669; /* 기존 포인트 컬러 그대로 사용 */
+    color: #ffffff !important;   /* 글자는 흰색으로 대비 */
+    padding: 8px 20px;          /* 좌우로 조금 더 길게 */
+    border-radius: 50px;        /* 캡슐 모양으로 시선 강탈 */
+    box-shadow: 0 4px 12px rgba(0, 166, 105, 0.3); /* 은은한 초록색 빛 */
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    font-weight: bold;
+
+    transition: all 0.3s ease;
+}
+
+/* 호버 시 느낌 (기존 scale 효과 유지하면서 그림자만 강화) */
+.nav-start-btn:hover {
+    background-color: #008f5a;  /* 기존 hover 색상과 통일 */
+    color: #ffffff !important;
+    box-shadow: 0 6px 18px rgba(0, 166, 105, 0.4); /* 조금 더 떠오르는 느낌 */
+    transform: scale(1.05);     /* 기존 hover 효과와 일치 */
+}
+
+.welcome-msg {
+    font-size: 14px;
+    color: #888; /* 약간 연한 회색으로 서브 느낌 부여 */
+    font-weight: 400;
+    margin-right: -2px; /* 이름과 자연스럽게 붙도록 조절 */
+}
+
+
+/* 드롭다운 부모 컨테이너 (클릭하는 영역) */
+.user-dropdown-container {
+    position: relative;
+    display: inline-flex;  /* 💡 이름을 나란히 배치하기 좋음 */
+    align-items: center;
+    padding: 10px 0;
+
+    /* [핵심 추가] 마우스 커서 손가락 모양 & 글자 드래그 방지 */
+    cursor: pointer;
+    user-select: none;
+}
+
+/* 드롭다운 메뉴 본체 */
+.user-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 160px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 10px 0;
+
+    /* 숨김 상태 */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1100;
+}
+
+/* 활성화 상태 (JS에서 .active를 붙였을 때) */
+.user-dropdown-container.active .user-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* 활성화 시 화살표 회전 */
+.user-dropdown-container.active .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+/* 1. 메뉴 내부의 각 항목(링크) 디자인 */
+.user-dropdown-menu a {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    color: #475569;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    gap: 10px;
+}
+
+/* 2. 항목에 마우스를 올렸을 때 (Hover) */
+.user-dropdown-menu a:hover {
+    background-color: #f1f5f9;
+    color: #00A669;
+    padding-left: 22px;
+}
+
+/* 3. 메뉴 사이의 구분선 (hr 태그) */
+.dropdown-divider {
+    border: 0;
+    border-top: 1px solid #f1f5f9; /* 아주 연한 선 */
+    margin: 5px 0;             /* 위아래 살짝 간격 */
+}
+
+/* 4. 로그아웃 버튼 (특별 관리) */
+.dropdown-logout {
+    color: #94a3b8 !important; /* 평소엔 조금 흐리게 처리 */
+}
+
+.dropdown-logout:hover {
+    background-color: #fff1f2 !important; /* 마우스 올리면 연한 분홍 배경 */
+    color: #e11d48 !important;            /* 글자는 경고의 빨간색 */
+}
+
+/* 화살표 기본 스타일 (부드러운 회전을 위해 transition 추가) */
+.dropdown-arrow {
+    margin-right: 5px;
+    transition: transform 0.3s ease;
+}
+
+.user-dropdown-container:hover .user-name-tag {
+    color: #00A669; /* 이름 색상을 브랜드 컬러로 변경 */
+}
+
+.user-dropdown-container:hover .dropdown-arrow {
+    color: #00A669; /* 화살표 색상도 맞춤 */
 }
 
 /* 왼쪽 버튼 위치 */
@@ -219,64 +476,59 @@ body {
     right: 20px;
 }
 
-/* SVG 아이콘 색상 보정 */
-.nav-btn svg path {
-    stroke: white; /* 👊 아까 보셨던 흰색 선 */
-}
 
-/* 모든 페이지를 감싸는 쫀쫀한 너비의 래퍼 */
-.auth-wrapper {
-    width: 100%;
-    max-width: 400px;
-    padding: 20px;
-    text-align: center;
-    margin-top: 100px; /* 네비바 높이 고려 */
-    flex: 1;           /* [핵심] 푸터를 화면 맨 아래로 밀어내는 힘! 🚀 */
-}
-
-/* 넓은 너비 (정보 입력용) */
-.auth-wrapper.wide {
-    max-width: 600px; /* 여기서 원하는 만큼 넓히세요! (600px~700px 추천) */
-}
-
-/* 2. 헤더 섹션 (로그인용 & 정보입력용 통합) */
-.header-section { margin-bottom: 30px; } /* 로그인용 */
-.info-header { text-align: left; margin-bottom: 30px; } /* 정보입력용 */
-
+/* 모달 로고 */
+/* [Base] 모든 원형 아이콘의 공통 분모 */
 .icon-circle {
     background-color: #00A669;
-    width: 48px; height: 48px;
     border-radius: 50%;
-    display: flex; justify-content: center; align-items: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     margin: 0 auto 15px;
 
     position: relative;
 }
 
-/*  원 안에 투명한 흰색 테두리 고리 */
+/* [Base - Ring] 내부 화이트 고리 공통 설정 */
 .icon-circle::before {
-    content: '';          /* 빈 공간 생성 */
-    position: absolute;   /* 부모(.icon-circle) 기준으로 절대 위치 */
-
-    /* 부모보다 살짝 작게 (테두리 두께만큼) 설정 */
-    top: 7px; left: 7px; right: 7px; bottom: 7px;
-
-    border: 2px solid white; /* 흰색 테두리 */
+    content: '';
+    position: absolute;
+    /* 고정된 px 대신 %를 사용하면 크기가 변해도 비율이 유지됩니다 */
+    top: 12%; left: 12%; right: 12%; bottom: 12%;
+    border: 2px solid white;
     border-radius: 50%;
-
-    /* SVG 아이콘보다 뒤에 위치하게 (Z-index 조정) */
     z-index: 1;
 }
 
-/* 기존 SVG 아이콘 설정 */
+/* [Base - SVG] 내부 아이콘 공통 설정 */
 .icon-circle svg {
-    /* 가상 요소 고리보다 앞에 오게 (Z-index 조정) */
     position: relative;
     z-index: 2;
-
-    width: 20px;
-    height: 20px;
+    color: white; /* stroke="currentColor"일 경우 대비 */
 }
+
+/* 1. 네비게이션 로고용 (Small) */
+.icon-sm {
+    width: 32px;
+    height: 32px;
+}
+.icon-sm svg { width: 20px; height: 20px; }
+
+/* 2. 일반 카드용 (Medium - 기존 48px) */
+.icon-md {
+    width: 48px;
+    height: 48px;
+}
+.icon-md svg { width: 20px; height: 20px; }
+
+/* 3. 마이페이지 헤더용 (Large - 60px) */
+.icon-lg {
+    width: 60px;
+    height: 60px;
+}
+.icon-lg svg { width: 28px; height: 28px; }
+.icon-lg::before { border-width: 2px; } /* 큰 원은 테두리도 조금 두껍게 */
 
 .info-header a {
     color: #00A669; text-decoration: none; font-size: 14px;
@@ -319,8 +571,8 @@ p.subtitle { font-size: 14px; color: #666; font-weight: 300; }
 .auth-card {
     position: relative;
     background: white;
-    padding: 30px;
-    border-radius: 16px;
+    padding: 40px;
+    border-radius: 20px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     text-align: left;
 
@@ -372,7 +624,7 @@ p.subtitle { font-size: 14px; color: #666; font-weight: 300; }
     opacity 0.3s ease 0.1s;
 }
 
-.input-row { display: flex; gap: 15px; margin-bottom: 15px; }
+.input-row { display: flex; gap: 25px; margin-bottom: 25px; }
 .input-row .input-group { flex: 1; margin-bottom: 0; }
 
 .input-group { margin-bottom: 15px; }
@@ -399,6 +651,24 @@ p.subtitle { font-size: 14px; color: #666; font-weight: 300; }
 }
 .submit-btn:hover { background-color: #008f5a; }
 
+.section-header {
+    margin-bottom: 25px; /* 섹션 전체와 아래 폼 사이의 간격 */
+}
+
+.section-header h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 8px; /* 제목과 부제목 사이 간격 */
+}
+
+.section-subtitle {
+    font-size: 14px;
+    color: #888;
+    line-height: 1.5;
+    font-weight: 400;
+}
+
 /* 7. 기타 하단 요소 */
 .help-links { display: flex; justify-content: center; align-items: center; height: 20px; margin-top: 15px; }
 .help-links a { font-size: 12px; color: #00A669; text-decoration: none; }
@@ -410,4 +680,82 @@ p.subtitle { font-size: 14px; color: #666; font-weight: 300; }
     background: white; border: 1px solid #eee;
     display: flex; justify-content: center; align-items: center;
     color: #ccc; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 14px;
+}
+
+
+/* --- 모달 전용 스타일 --- */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* 배경을 조금 더 차분하게 */
+    backdrop-filter: blur(5px); /* 뒷배경 블러 처리로 고급스럽게 */
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content.auth-card {
+    width: 100%;
+    max-width: 400px; /* 쫀쫀한 너비 유지 */
+    margin: 20px;
+    position: relative;
+    padding: 35px; /* 여백 살짝 조절 */
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.close-modal {
+    position: absolute;
+    top: 20px; right: 20px;
+    background: none; border: none;
+    font-size: 24px; color: #ccc;
+    cursor: pointer; transition: 0.2s;
+}
+.close-modal:hover { color: #00A669; }
+
+/* 탭 메뉴 스타일 */
+.auth-tabs {
+    display: flex;
+    border-bottom: 2px solid #eee;
+    margin-bottom: 25px;
+}
+
+.auth-tab {
+    flex: 1; border: none; background: none;
+    padding: 12px 0; font-size: 15px; color: #ccc;
+    cursor: pointer; transition: 0.3s;
+    border-bottom: 3px solid transparent;
+    text-align: center;
+    font-weight: 500;
+}
+.auth-tab.active {
+    color: #00A669;
+    font-weight: 700;
+    border-bottom: 3px solid #00A669;
+}
+
+/* 버튼 스타일 */
+.auth-submit-btn {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px; font-weight: 700; color: white; cursor: pointer;
+    background-color: #00A669; transition: 0.3s; margin-top: 15px;
+}
+.auth-submit-btn:hover { background-color: #008f5a; }
+
+/* 비밀번호 메시지 */
+.pw-msg {
+    position: absolute;
+    font-size: 12px;
+    margin-top: 5px;
+    display: block;
+    height: 15px;
 }

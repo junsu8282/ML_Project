@@ -26,12 +26,19 @@ def predict_user_persona(user_input):
     carb_ratio = (user_input['N_CHO'] * 4) / calc_kcal if calc_kcal > 0 else 0
     prot_ratio = (user_input['N_PROT'] * 4) / calc_kcal if calc_kcal > 0 else 0
 
+    if 'height' in user_input and 'weight' in user_input:
+        height_m = user_input['height'] / 100
+        current_bmi = user_input['weight'] / (height_m ** 2)
+    else:
+        # 슬라이더 값이 없을 경우 기존 DB의 BMI 사용
+        current_bmi = user_input.get('HE_BMI', 22.0)
+
     input_data = pd.DataFrame([{
         "CARB_RATIO": carb_ratio,
         "PROT_RATIO": prot_ratio,
         "N_NA": user_input['N_NA'],
         "N_SUGAR": user_input['N_SUGAR'],
-        "HE_BMI": user_input['HE_BMI'],
+        "HE_BMI": current_bmi,
         "AGE": user_input['AGE'],
         "PA_AEROBIC": user_input['PA_AEROBIC']
     }], columns=features)
@@ -60,7 +67,7 @@ def predict_user_persona(user_input):
     normal_score = np.exp(-dist_to_target / (effective_threshold * 0.5))
 
     # 나머지 로직은 동일 (rem_weight 계산 등)
-    rem_weight = 1 - (normal_score if normal_score < 0.9 else 0.9)
+    rem_weight = 1.0 - min(normal_score, 0.95)
 
     raw_probs = [
         normal_score,
@@ -71,29 +78,31 @@ def predict_user_persona(user_input):
     total = sum(raw_probs)
     final_prob = [p / total for p in raw_probs]
 
-    # 4. 최종 판정
-    best_idx = np.argmax(final_prob)
-
-    # [수정] 만약 normal_score가 압도적으로 높거나
-    # 거리가 effective_threshold 안쪽이라면 무조건 0번(정상)으로 판정하는 안전장치
-    best_idx = np.argmax(final_prob)
-
-    # [Step 2] 예외 처리 (식단이 클린한 20~30대라면?)
-    # 나트륨 2500이하, 당 55이하이고 나이가 40세 미만인 경우
+    # [수정 포인트] 예외 처리 (2030 클린 식단) 로직을 먼저 수행
     is_young_and_clean = (user_input['N_NA'] <= 2500 and
                           user_input['N_SUGAR'] <= 55 and
                           user_input['AGE'] < 40)
 
     if is_young_and_clean:
-        # 식단이 이렇게 좋은데 시니어나 불균형이 뜨면 UX가 깨짐 -> '정상' 강제 배정
-        best_idx = 0
-        # (선택사항) 그래프에서도 정상이 1등으로 보이게 확률 조정
-        if final_prob[0] < 0.5:
-            final_prob = [0.7, 0.1, 0.1, 0.1]  # 정상 70%로 강제 펌핑 🚀
+        # 정상 확률을 70%로 올리는 보정 수행
+        if final_prob[0] < 0.7:
+            old_normal = final_prob[0]
+            final_prob[0] = 0.7
+            remaining = 0.3
+            other_sum = sum(final_prob[1:])
+            if other_sum > 0:
+                for i in range(1, 4):
+                    final_prob[i] = (final_prob[i] / other_sum) * remaining
+            else:
+                final_prob = [0.7, 0.1, 0.1, 0.1]
+
+    # [중요] 모든 보정이 끝난 "최종 확률"을 바탕으로 1등(best_idx)을 뽑아야 함
+    best_idx = int(np.argmax(final_prob))
 
     display_names = ["균형 잡힌 식단의 정석", "에너지 대사 주의 식단", "활기찬 에너자이저 식단", "탄탄한 기초 안정 식단"]
+    cluster_name = display_names[best_idx]  # 이제 여기서 0번(정석)을 제대로 가져옵니다.
+
     cluster_id = -1 if best_idx == 0 else (best_idx - 1)
-    cluster_name = display_names[best_idx]
 
     return {
         "cluster_id": int(cluster_id),
@@ -102,5 +111,6 @@ def predict_user_persona(user_input):
         "cluster_names": display_names,
         "dist_score": round(float(dist_to_target), 4),
         "carb_ratio": round(carb_ratio, 2),
-        "prot_ratio": round(prot_ratio, 2)
+        "prot_ratio": round(prot_ratio, 2),
+        "bmi": round(current_bmi, 1)
     }

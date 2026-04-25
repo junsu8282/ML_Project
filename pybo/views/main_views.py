@@ -1,35 +1,63 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, jsonify
-from pybo.model import db, User
+from pybo.model import db, User, UserInputData
 from pybo.predict_cluster import predict_user_persona
 from sqlalchemy import text
 
 bp = Blueprint('main', __name__, url_prefix='/')
 
 
-# 1. 메인 랜딩 페이지
+# 1. 메인 페이지
 @bp.route('/')
 def main_page():
-    # 이미 로그인 세션이 있다면 정보 입력 페이지로 하이패스!
-    if 'user_id' in session:
-        return redirect(url_for('main.info_page'))
-
-    # 로그인 안 되어 있으면 방금 만든 '프리미엄 홈화면'을 보여줍니다.
     return render_template('home.html')
 
 
-# 2. [새로 추가] 로그인/회원가입 페이지 (auth.html)
+@bp.route('/mypage')
+def mypage():
+    # 세션에서 현재 로그인한 유저의 이메일 가져오기
+    user_email = session.get('user_id')
+
+    # 1. DB에서 해당 유저의 모든 분석 기록 조회 (최신순)
+    records = UserInputData.query.filter_by(user_id=user_email).order_by(UserInputData.created_at.desc()).all()
+
+    return render_template('mypage.html', history=records)
+
+
+@bp.route('/api/get_result/<int:result_id>')
+def get_result_by_id(result_id):
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'status': 'error', 'message': '로그인 필요'}), 401
+
+    try:
+        # 최신순이 아니라, 클릭한 그 'INPUT_ID'로 조회합니다!
+        query = text("SELECT * FROM USER_INPUT_DATA WHERE INPUT_ID = :result_id")
+        row = db.session.execute(query, {"result_id": result_id}).fetchone()
+
+        if row:
+            res = {k.lower(): v for k, v in row._mapping.items()}
+
+            # AI 모델 재예측 (기존 로직 유지)
+            user_input_dict = {
+                'N_CHO': res['n_cho'], 'N_PROT': res['n_prot'], 'N_FAT': res['n_fat'],
+                'N_NA': res['n_na'], 'N_SUGAR': res['n_sugar'],
+                'HE_BMI': res['he_bmi'], 'AGE': res['age'], 'PA_AEROBIC': res['pa_aerobic']
+            }
+            prediction = predict_user_persona(user_input_dict)
+            res.update(prediction)
+
+            return jsonify({'status': 'success', 'data': res})
+        return jsonify({'status': 'error', 'message': '기록을 찾을 수 없습니다.'}), 404
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+# 2. 로그인 경로 처리 (선택 사항)
 @bp.route('/login')
 def login_page():
-    # 이미 로그인한 유저가 주소창에 /login 치고 들어오는 것 방지
-    if 'user_id' in session:
-        return redirect(url_for('main.info_page'))
+    return redirect(url_for('main.main_page'))
 
-    # 랜딩 페이지에서 '분석 시작하기'를 누르면 여기로 와서 카드 폼을 보여줍니다! 🚀
-    return render_template('auth.html')
-
-
-# --- 아래 로그인/회원가입 로직은 그대로 유지하되, 리다이렉트 경로만 확인하세요 ---
-
+# --- 로그인/회원가입  ---
 @bp.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -71,7 +99,7 @@ def register():
 
 @bp.route('/logout')
 def logout():
-    session.pop('user_id', None)
+    session.clear()
     return redirect(url_for('main.main_page'))
 
 
@@ -80,11 +108,6 @@ def nutrient_page():
     # 1. 로그인 체크 (세션에 user_id가 없으면 로그인 페이지로)
     if 'user_id' not in session:
         return redirect(url_for('main.main_page'))
-
-    # 2. (선택사항) 1단계 정보를 입력했는지 체크
-    # 만약 1단계 데이터를 서버 세션에 저장했다면 여기서 체크할 수 있습니다.
-    # 하지만 준수님은 localStorage(클라이언트)를 쓰시니까,
-    # 여기서는 페이지를 열어주고 JS에서 체크하게 두는 게 편합니다.
 
     return render_template('nutrient_input.html')
 
@@ -97,6 +120,61 @@ def info_page():
 
     # 신체 정보 입력 페이지 보여주기
     return render_template('info_input.html')
+
+
+@bp.route('/api/simulate_analysis', methods=['POST'])
+def simulate_analysis():
+    try:
+        data = request.get_json()
+
+        # 1. JS payload 키값에 맞춰 데이터 추출
+        age = int(data.get('age', 30))
+        gender = 1 if session.get('gender') == 'male' else 2
+        height = float(data.get('height', 175)) / 100
+        weight = float(data.get('weight', 70))
+        he_bmi = round(weight / (height ** 2), 2)
+
+        # JS에서 PA_AEROBIC(0 또는 1)로 보내므로 바로 받음
+        pa_aerobic = int(data.get('PA_AEROBIC', 0))
+
+        # 영양소 키값 매핑 (N_CHO, N_PROT 등으로 통일)
+        n_cho = float(data.get('N_CHO', 0))
+        n_prot = float(data.get('N_PROT', 0))
+        n_fat = float(data.get('N_FAT', 0))
+        n_sugar = float(data.get('N_SUGAR', 0))
+        n_na = float(data.get('N_NA', 0))
+
+        # 2. 비율 계산 (차트용)
+        total_kcal = (n_cho * 4) + (n_prot * 4) + (n_fat * 9)
+        c_ratio = (n_cho * 4) / total_kcal if total_kcal > 0 else 0
+        p_ratio = (n_prot * 4) / total_kcal if total_kcal > 0 else 0
+        f_ratio = (n_fat * 9) / total_kcal if total_kcal > 0 else 0
+
+        # 3. AI 모델 예측
+        user_input_for_ml = {
+            'N_CHO': n_cho, 'N_PROT': n_prot, 'N_FAT': n_fat,
+            'N_NA': n_na, 'N_SUGAR': n_sugar,
+            'HE_BMI': he_bmi, 'AGE': age, 'SEX': gender, 'PA_AEROBIC': pa_aerobic
+        }
+        analysis_result = predict_user_persona(user_input_for_ml)
+
+        return jsonify({
+            'status': 'success',
+            'data': {
+                'cluster_name': analysis_result['cluster_name'],
+                'cluster_id': analysis_result['cluster_id'],
+                'probabilities': analysis_result['probabilities'],
+                'carb_ratio': c_ratio,
+                'prot_ratio': p_ratio,
+                'fat_ratio': f_ratio,
+                'n_cho': n_cho, 'n_prot': n_prot, 'n_fat': n_fat,
+                'n_sugar': n_sugar, 'n_na': n_na,
+                'sex': gender
+            }
+        })
+    except Exception as e:
+        print(f"❌ 시뮬레이션 오류: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
 @bp.route('/api/save_analysis', methods=['POST'])
@@ -167,9 +245,10 @@ def save_analysis():
 
 
 # 1. 결과 페이지 진입 (껍데기만 로드)
+@bp.route('/result/<int:result_id>')
 @bp.route('/result')
-def result_page():
-    return render_template('result.html')
+def result_page(result_id=None):
+    return render_template('result.html', result_id=result_id)
 
 
 # 2. AJAX 요청을 처리하는 데이터 전용 API
@@ -204,10 +283,6 @@ def get_latest_result():
 
             # 4. 결과 합치기
             res.update(prediction)  # cluster_id, cluster_name 등이 들어감
-
-            # [추가] 도넛 그래프를 위한 확률값 계산이 필요하다면?
-            # 현재 predict_user_persona 함수가 확률(probabilities)을 리턴하지 않으므로,
-            # 필요하다면 해당 함수에서 'probas': gmm.predict_proba(x_pca)[0].tolist()를 추가해줘야 합니다.
 
             return jsonify({'status': 'success', 'data': res})
 

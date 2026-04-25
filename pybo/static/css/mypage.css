@@ -1,0 +1,224 @@
+/* 1. 배경 및 전체 레이아웃 */
+.mypage-wrapper {
+    min-height: 100vh;
+    padding: 60px 20px;
+    font-family: 'Pretendard', -apple-system, sans-serif;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* 2. 상단 환영 섹션 */
+.welcome-header {
+    text-align: center;
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+
+.welcome-header h1 {
+    font-size: 28px;
+    color: #1e293b;
+    margin-bottom: 8px;
+}
+
+.welcome-header p {
+    color: #64748b;
+    font-size: 16px;
+}
+
+/* 3. 메인 액션 카드 (검사하기/분석하기) */
+.main-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2열 배치 */
+    gap: 24px;
+    margin-bottom: 25px;
+}
+
+.action-card {
+    background: #ffffff;
+    padding: 35px 30px;
+    border-radius: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(0, 0, 0, 0.02);
+}
+
+.action-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
+.icon-box {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.icon-box.green { background-color: #e6f6f0; color: #00A669; }
+.icon-box.blue { background-color: #eff6ff; color: #3b82f6; }
+
+.action-card h3 {
+    font-size: 20px;
+    color: #1e293b;
+    margin-bottom: 8px;
+}
+
+.action-card p {
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* 4. 분석 기록 섹션 */
+/* 1. 섹션 전체를 감싸는 큰 베이스 카드 */
+.history-card-board {
+    background: #ffffff;
+    border-radius: 30px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03); /* 아주 은은한 그림자 */
+    border: 1px solid #f1f5f9;
+}
+
+.board-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 25px;
+    padding: 0 10px;
+}
+
+.board-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.count-badge {
+    background-color: #f1f5f9;
+    color: #64748b;
+    padding: 5px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* 2. 내부의 개별 아이템 카드 */
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.history-item-card {
+    background-color: #f8fafc; /* 베이스 카드(흰색)와 대비되는 연한 배경 */
+    padding: 18px 20px;
+    border-radius: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+}
+
+/* 내부 카드 호버 효과 (공통) */
+.history-item-card:hover {
+    background-color: #ffffff; /* 호버 시 흰색으로 밝아짐 */
+    transform: translateY(-3px);
+}
+
+.item-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.mini-check {
+    width: 32px;
+    height: 32px;
+    background-color: #ffffff; /* 내부 아이콘 박스 */
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.item-title {
+    font-weight: 600;
+    color: #334155;
+    font-size: 15px;
+    margin: 0;
+}
+
+.item-date {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+.item-arrow {
+    color: #cbd5e1;
+    font-weight: bold;
+    font-size: 14px;
+    transition: color 0.2s;
+}
+
+/* Flask에서 넘겨줄 클래스명에 따른 색상 (원래 코드 유지) */
+.tag-good { background-color: #e6f6f0; color: #00A669; }
+.tag-warning { background-color: #fff1f2; color: #e11d48; }
+.tag-normal { background-color: #fefce8; color: #ca8a04; }
+
+
+/* =========================================
+   여기서부터 새롭게 추가된 4가지 테마별 호버/포인트 색상
+   ========================================= */
+
+/* 1. 정석 (Green) */
+.type-balance .mini-check { color: #059669; }
+.type-balance:hover {
+    background-color: #e6f6f0; /* 내부 색상 강조 */
+    box-shadow: 0 8px 20px rgba(5, 150, 105, 0.1);
+}
+.type-balance:hover .item-arrow { color: #059669; }
+
+/* 2. 주의 (Red/Coral) */
+.type-warning .mini-check { color: #E11D48; }
+.type-warning:hover {
+    background-color: #fff1f2; /* 내부 색상 강조 */
+    box-shadow: 0 8px 20px rgba(225, 29, 72, 0.1);
+}
+.type-warning:hover .item-arrow { color: #E11D48; }
+
+/* 3. 활동 (Blue) */
+.type-action .mini-check { color: #1D4ED8; }
+.type-action:hover {
+    background-color: #eff6ff; /* 내부 색상 강조 */
+    box-shadow: 0 8px 20px rgba(29, 78, 216, 0.1);
+}
+.type-action:hover .item-arrow { color: #1D4ED8; }
+
+/* 4. 기초 (Gold/Yellow) */
+.type-base .mini-check { color: #D97706; }
+.type-base:hover {
+    background-color: #fefce8; /* 내부 색상 강조 */
+    box-shadow: 0 8px 20px rgba(217, 119, 6, 0.1);
+}
+.type-base:hover .item-arrow { color: #D97706; }
+
+/* 모바일 대응 (반응형) */
+@media (max-width: 640px) {
+    .main-cards {
+        grid-template-columns: 1fr; /* 모바일에선 한 줄로 */
+    }
+}

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mypage.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="mypage-wrapper">
+    <div class="container">
+        <div class="welcome-header">
+            <div class="icon-circle icon-lg">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </div>
+            <h1>안녕하세요, {{ session.user_name }}님!</h1>
+            <p>건강한 식습관을 위한 분석을 시작해보세요</p>
+        </div>
+
+        <div class="main-cards">
+            <div class="action-card" onclick="location.href='/info'">
+                <div class="icon-box green">📋</div>
+                <h3>검사하기</h3>
+                <p>나의 식습관을 자세히 검사해보세요</p>
+            </div>
+            <div class="action-card" onclick="location.href='/nutrient'">
+                <div class="icon-box blue">📊</div>
+                <h3>분석하기</h3>
+                <p>영양소 섭취를 분석하고 개선 방안을 확인하세요</p>
+            </div>
+        </div>
+
+        <div class="history-section">
+            <div class="history-card-board">
+                <div class="board-header">
+                    <h2>분석 기록</h2>
+                    <span class="count-badge">총 {{ history|length }}건</span>
+                </div>
+
+                <div class="history-list">
+                    {% for record in history %}
+                        {# 유형 이름에 따른 클래스 분기 로직 #}
+                        {% set type_class = 'type-balance' %}
+                        {% if '주의' in record.result_type %}{% set type_class = 'type-warning' %}
+                        {% elif '에너자이저' in record.result_type or '활동' in record.result_type %}{% set type_class = 'type-action' %}
+                        {% elif '기초' in record.result_type or '안정' in record.result_type %}{% set type_class = 'type-base' %}
+                        {% endif %}
+
+                        <div class="history-item-card {{ type_class }}" onclick="location.href='/result/{{ record.id }}'">
+                            <div class="item-info">
+                                <div class="mini-check">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    </svg>
+                                </div>
+                                <div class="text-group">
+                                    <p class="item-title">{{ record.result_type }}</p>
+                                    <p class="item-date">
+                                        {{ record.created_at.strftime('%Y-%m-%d %H:%M') if record.created_at else '날짜 없음' }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="item-arrow">〉</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

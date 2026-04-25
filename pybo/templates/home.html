@@ -5,216 +5,367 @@
 {% endblock %}
 
 {% block content %}
-<div class="landing-page-container">
-    <section class="hero-full-wrapper">
-        <div class="hero-slider">
-            <div class="hero-slide"><div class="hero-image-area"><img src="/static/images/slide_3.png"></div></div> <div class="hero-slide"><div class="hero-image-area"><img src="/static/images/slide_1.png"></div></div> <div class="hero-slide"><div class="hero-image-area"><img src="/static/images/slide_2.png"></div></div> <div class="hero-slide"><div class="hero-image-area"><img src="/static/images/slide_3.png"></div></div> <div class="hero-slide"><div class="hero-image-area"><img src="/static/images/slide_1.png"></div></div> </div>
-
-        <div class="hero-fixed-content-area">
-            <div class="hero-container">
-                <div class="hero-text-item" data-index="1">
-                    <span class="hero-tag">"당신의 식탁을 분석해 드립니다"</span>
-                    <h1 class="hero-title">나도 모르는 나의<br><strong>식습관 유형</strong>을 찾아서</h1>
-                    <p class="hero-subtitle">3분 투자로 건강한 식생활의 첫걸음을 시작하세요.<br>정확한 데이터 분석으로 당신만의 솔루션을 제공합니다.</p>
-                    <div class="hero-actions">
-                        <a href="{{ url_for('main.login_page') }}" class="cta-btn main-cta">분석 시작하기</a>
+    <div class="landing-page-container">
+        <section class="hero-full-wrapper scroll-section">
+            <div class="hero-slider">
+                <div class="hero-slide">
+                    <div class="hero-image-area">
+                        <img src="/static/images/slide_3.png">
                     </div>
                 </div>
-
-                <div class="hero-text-item" data-index="2">
-                    <span class="hero-tag">"무엇을 얼마나 먹고 있을까요?"</span>
-                    <h1 class="hero-title">정교한 데이터로<br><strong>영양 성분</strong>을 한눈에</h1>
-                    <p class="hero-subtitle">탄단지 비율부터 미세 영양소까지 분석합니다.<br>당신에게 부족한 영양소를 정확히 찾아내세요.</p>
-                    <div class="hero-actions">
-                        <a href="{{ url_for('main.login_page') }}" class="cta-btn main-cta">영양 분석 체험</a>
+                <div class="hero-slide"><div class="hero-image-area">
+                    <img src="/static/images/slide_1.png"></div>
+                </div>
+                <div class="hero-slide">
+                    <div class="hero-image-area">
+                        <img src="/static/images/slide_2.png">
                     </div>
                 </div>
-
-                <div class="hero-text-item" data-index="3">
-                    <span class="hero-tag">"작심삼일은 이제 그만"</span>
-                    <h1 class="hero-title">내 몸을 바꾸는<br><strong>지속 가능한</strong> 습관</h1>
-                    <p class="hero-subtitle">어려운 다이어트 대신 쉬운 식습관부터 시작하세요.<br>유형별 실천 팁으로 매일 건강해지는 경험을 드립니다.</p>
-                    <div class="hero-actions">
-                        <a href="{{ url_for('main.login_page') }}" class="cta-btn main-cta">가이드 받기</a>
+                <div class="hero-slide"><div class="hero-image-area">
+                    <img src="/static/images/slide_3.png">
+                </div></div>
+                <div class="hero-slide">
+                    <div class="hero-image-area">
+                        <img src="/static/images/slide_1.png">
                     </div>
                 </div>
             </div>
-        </div>
 
-        <button class="nav-btn prev-btn" onclick="moveSlide(-1)">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <button class="nav-btn next-btn" onclick="moveSlide(1)">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <div class="hero-dots">
-            <span class="dot" onclick="currentSlide(0)"></span>
-            <span class="dot" onclick="currentSlide(1)"></span>
-            <span class="dot" onclick="currentSlide(2)"></span>
-        </div>
-    </section>
-</div>
+            <div class="hero-fixed-content-area">
+                <div class="hero-container">
+                    <div class="hero-text-item" data-index="1">
+                        <span class="hero-tag">"당신의 식탁을 분석해 드립니다"</span>
+                        <h1 class="hero-title">나도 모르는 나의<br><strong>식습관 유형</strong>을 찾아서</h1>
+                        <p class="hero-subtitle">3분 투자로 건강한 식생활의 첫걸음을 시작하세요.<br>정확한 데이터 분석으로 당신만의 솔루션을 제공합니다.</p>
+                        <div class="hero-actions">
+                            {% if session.get('user_id') %}
+                                <a href="{{ url_for('main.info_page') }}" class="cta-btn main-cta">분석 시작하기</a>
+                            {% else %}
+                                <a href="javascript:void(0)" class="cta-btn main-cta" onclick="openLoginModal('login')">분석 시작하기</a>
+                            {% endif %}
+                        </div>
+                    </div>
 
-<div class="landing-content-flow">
-    <section class="value-section">
-        <div class="section-header">
-            <h2>정확하고 과학적인 식습관 분석</h2>
-            <p>데이터 기반의 설문으로 당신의 식생활 패턴을 완벽하게 해부합니다.</p>
-        </div>
+                    <div class="hero-text-item" data-index="2">
+                        <span class="hero-tag">"무엇을 얼마나 먹고 있을까요?"</span>
+                        <h1 class="hero-title">정교한 데이터로<br><strong>영양 성분</strong>을 한눈에</h1>
+                        <p class="hero-subtitle">탄단지 비율부터 미세 영양소까지 분석합니다.<br>당신에게 부족한 영양소를 정확히 찾아내세요.</p>
+                        <div class="hero-actions">
+                            {% if session.get('user_id') %}
+                                <a href="{{ url_for('main.info_page') }}" class="cta-btn main-cta">영양 분석 체험</a>
+                            {% else %}
+                                <a href="javascript:void(0)" class="cta-btn main-cta" onclick="openLoginModal('login')">영양 분석 체험</a>
+                            {% endif %}
+                        </div>
+                    </div>
 
-        <div class="feature-grid">
-            <div class="feature-item">
-                <div class="feature-icon">🥗</div>
-                <h3>맞춤형 유형 식별</h3>
-                <p>행동 패턴을 분석하여 당신만의 독특한 식습관을 정의합니다. 🚀</p>
-            </div>
-            <div class="feature-item">
-                <div class="feature-icon">⚖️</div>
-                <h3>영양 균형 점검</h3>
-                <p>탄단지 비율부터 설탕, 나트륨까지 시각적으로 보여줍니다. 👊</p>
-            </div>
-            <div class="feature-item">
-                <div class="feature-icon">📝</div>
-                <h3>개별화된 개선 팁</h3>
-                <p>당신의 유형에 딱 맞는 실천 가능한 조언을 제공합니다.</p>
-            </div>
-        </div>
-    </section>
-</div>
-
-<footer class="main-footer">
-    <div class="footer-container">
-        <div class="footer-top">
-            <div class="footer-brand">
-                <h2 class="footer-logo">Dietary<span>Analysis</span></h2>
-                <p class="brand-desc">데이터로 분석하는 스마트한 식습관 솔루션.<br>당신의 건강한 내일을 함께합니다.</p>
-            </div>
-
-            <div class="footer-links">
-                <div class="link-group">
-                    <h4>서비스</h4>
-                    <a href="#">식습관 분석</a>
-                    <a href="#">영양 성분 가이드</a>
-                    <a href="#">유형별 레시피</a>
-                </div>
-                <div class="link-group">
-                    <h4>고객지원</h4>
-                    <a href="#">자주 묻는 질문</a>
-                    <a href="#">문의하기</a>
-                    <a href="#">공지사항</a>
-                </div>
-                <div class="link-group">
-                    <h4>법적 고지</h4>
-                    <a href="#"><strong>개인정보처리방침</strong></a>
-                    <a href="#">이용약관</a>
+                    <div class="hero-text-item" data-index="3">
+                        <span class="hero-tag">"작심삼일은 이제 그만"</span>
+                        <h1 class="hero-title">내 몸을 바꾸는<br><strong>지속 가능한</strong> 습관</h1>
+                        <p class="hero-subtitle">어려운 다이어트 대신 쉬운 식습관부터 시작하세요.<br>유형별 실천 팁으로 매일 건강해지는 경험을 드립니다.</p>
+                        <div class="hero-actions">
+                            {% if session.get('user_id') %}
+                                <a href="{{ url_for('main.info_page') }}" class="cta-btn main-cta">가이드 받기</a>
+                            {% else %}
+                                <a href="javascript:void(0)" class="cta-btn main-cta" onclick="openLoginModal('login')">가이드 받기</a>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <hr class="footer-divider">
+            <button class="nav-btn prev-btn" onclick="moveSlide(-1)">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="nav-btn next-btn" onclick="moveSlide(1)">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <div class="hero-dots">
+                <span class="dot" onclick="currentSlide(0)"></span>
+                <span class="dot" onclick="currentSlide(1)"></span>
+                <span class="dot" onclick="currentSlide(2)"></span>
+            </div>
+        </section>
 
-        <div class="footer-bottom">
-            <div class="company-info">
-                <span>프로젝트명: Dietary Analysis Project</span>
-                <span>개발자: 박준수</span>
-                <span>이메일: 888junsu@gmail.com</span>
-            </div>
-            <div class="copyright">
-                <p>&copy; 2026 Dietary Analysis Project. All Rights Reserved.</p>
-            </div>
+        <div class="landing-content-flow">
+            <section class="value-section scroll-section">
+                <div class="section-header">
+                    <h2>정확하고 과학적인 식습관 분석</h2>
+                    <p>데이터 기반의 설문으로 당신의 식생활 패턴을 완벽하게 해부합니다.</p>
+                </div>
+
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">🥗</div>
+                        <h3>맞춤형 유형 식별</h3>
+                        <p>행동 패턴을 분석하여 당신만의 독특한 식습관을 정의합니다.</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">⚖️</div>
+                        <h3>영양 균형 점검</h3>
+                        <p>탄단지 비율부터 설탕, 나트륨까지 시각적으로 보여줍니다.</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">📝</div>
+                        <h3>개별화된 개선 팁</h3>
+                        <p>당신의 유형에 딱 맞는 실천 가능한 조언을 제공합니다.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="report-highlight-section scroll-section">
+                <div class="section-header">
+                    <h2>데이터로 증명하는 정밀 리포트</h2>
+                    <p>분석 완료 후 제공되는 실제 리포트의 핵심 기능을 확인해보세요.</p>
+                </div>
+
+                <div class="highlight-container">
+                    <article class="highlight-card">
+                        <div class="card-image-wrapper">
+                            <img src="/static/images/chart_1.PNG" alt="GMM 식단 유형 분석">
+                        </div>
+                        <div class="card-body">
+                            <span class="badge">AI 모델링</span>
+                            <h4>통계 기반 유형 매칭</h4>
+                            <p>단순 분류를 넘어 GMM 알고리즘으로 당신의 식습관 확률을 계산합니다.</p>
+                        </div>
+                    </article>
+
+                    <article class="highlight-card">
+                        <div class="card-image-wrapper">
+                            <img src="/static/images/chart_2.PNG" alt="영양소 오각형 차트">
+                        </div>
+                        <div class="card-body">
+                            <span class="badge">비주얼 리포트</span>
+                            <h4>다차원 영양소 분석</h4>
+                            <p>탄단지 비율부터 나트륨, 당류까지 오각형 차트로 한눈에 파악하세요.</p>
+                        </div>
+                    </article>
+                </div>
+            </section>
         </div>
     </div>
-</footer>
 
-<script>
-    let slideIndex = 1;
-    let isMoving = false;
-    let autoSlideInterval; // 👊 자동 재생을 담을 변수
-    const realSlideCount = 3;
-    const slider = document.querySelector('.hero-slider');
+    <footer class="main-footer scroll-section">
+        <div class="footer-container">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <h2 class="footer-logo">Dietary<span>Analysis</span></h2>
+                    <p class="brand-desc">데이터로 분석하는 스마트한 식습관 솔루션.<br>당신의 건강한 내일을 함께합니다.</p>
+                </div>
 
-    function updateSlider(withAnimation = true, isInitial = false) {
-        if (withAnimation) {
-            slider.style.transition = "transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)";
-            isMoving = true;
-        } else {
-            slider.style.transition = "none";
-        }
+                <div class="footer-links">
+                    <div class="link-group">
+                        <h4>서비스</h4>
+                        <a href="#">식습관 분석</a>
+                        <a href="#">영양 성분 가이드</a>
+                        <a href="#">유형별 레시피</a>
+                    </div>
+                    <div class="link-group">
+                        <h4>고객지원</h4>
+                        <a href="#">자주 묻는 질문</a>
+                        <a href="#">문의하기</a>
+                        <a href="#">공지사항</a>
+                    </div>
+                    <div class="link-group">
+                        <h4>법적 고지</h4>
+                        <a href="#"><strong>개인정보처리방침</strong></a>
+                        <a href="#">이용약관</a>
+                    </div>
+                </div>
+            </div>
 
-        slider.style.transform = `translateX(-${slideIndex * 100}vw)`;
+            <hr class="footer-divider">
 
-        let realIdx = slideIndex;
-        if (slideIndex === 0) realIdx = realSlideCount;
-        if (slideIndex === realSlideCount + 1) realIdx = 1;
+            <div class="footer-bottom">
+                <div class="company-info">
+                    <span>프로젝트명: Dietary Analysis Project</span>
+                    <span>개발자: 박준수</span>
+                    <span>이메일: 888junsu@gmail.com</span>
+                </div>
+                <div class="copyright">
+                    <p>&copy; 2026 Dietary Analysis Project. All Rights Reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
 
-        if (withAnimation || isInitial) {
-            const textItems = document.querySelectorAll('.hero-text-item');
-            textItems.forEach(item => {
-                if (parseInt(item.dataset.index) === realIdx) {
-                    item.classList.add('active');
-                } else {
-                    item.classList.remove('active');
-                }
+    <script>
+        let slideIndex = 1;
+        let isMoving = false;
+        let autoSlideInterval; // 👊 자동 재생을 담을 변수
+        const realSlideCount = 3;
+        const slider = document.querySelector('.hero-slider');
+
+        function updateSlider(withAnimation = true, isInitial = false) {
+            if (withAnimation) {
+                slider.style.transition = "transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)";
+                isMoving = true;
+            } else {
+                slider.style.transition = "none";
+            }
+
+            slider.style.transform = `translateX(-${slideIndex * 100}vw)`;
+
+            let realIdx = slideIndex;
+            if (slideIndex === 0) realIdx = realSlideCount;
+            if (slideIndex === realSlideCount + 1) realIdx = 1;
+
+            if (withAnimation || isInitial) {
+                const textItems = document.querySelectorAll('.hero-text-item');
+                textItems.forEach(item => {
+                    if (parseInt(item.dataset.index) === realIdx) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+            }
+
+            document.querySelectorAll('.dot').forEach((dot, idx) => {
+                dot.classList.toggle('active', idx === realIdx - 1);
             });
         }
 
-        document.querySelectorAll('.dot').forEach((dot, idx) => {
-            dot.classList.toggle('active', idx === realIdx - 1);
+        // 👊 자동 재생 시작 함수
+        function startAutoSlide() {
+            stopAutoSlide(); // 중복 방지를 위해 기존 타이머 제거
+            autoSlideInterval = setInterval(() => {
+                moveSlide(1); // 4초마다 다음 슬라이드로
+            }, 4000);
+        }
+
+        // 👊 자동 재생 정지 함수
+        function stopAutoSlide() {
+            if (autoSlideInterval) clearInterval(autoSlideInterval);
+        }
+
+        window.addEventListener('load', () => {
+            updateSlider(false, true);
+            startAutoSlide(); // 페이지 로드 시 자동 재생 시작
         });
-    }
 
-    // 👊 자동 재생 시작 함수
-    function startAutoSlide() {
-        stopAutoSlide(); // 중복 방지를 위해 기존 타이머 제거
-        autoSlideInterval = setInterval(() => {
-            moveSlide(1); // 4초마다 다음 슬라이드로
-        }, 4000);
-    }
+        function moveSlide(step) {
+            if (isMoving) return;
 
-    // 👊 자동 재생 정지 함수
-    function stopAutoSlide() {
-        if (autoSlideInterval) clearInterval(autoSlideInterval);
-    }
+            // 👊 사용자가 직접 조작하면 타이머를 리셋해서 갑자기 넘어가는 걸 방지
+            startAutoSlide();
 
-    window.addEventListener('load', () => {
-        updateSlider(false, true);
-        startAutoSlide(); // 페이지 로드 시 자동 재생 시작
-    });
+            slideIndex += step;
+            updateSlider(true);
 
-    function moveSlide(step) {
-        if (isMoving) return;
+            setTimeout(() => {
+                if (slideIndex >= realSlideCount + 1) {
+                    slideIndex = 1;
+                    updateSlider(false);
+                }
+                else if (slideIndex <= 0) {
+                    slideIndex = realSlideCount;
+                    updateSlider(false);
+                }
+                isMoving = false;
+            }, 800);
+        }
 
-        // 👊 사용자가 직접 조작하면 타이머를 리셋해서 갑자기 넘어가는 걸 방지
-        startAutoSlide();
+        function currentSlide(n) {
+            if (isMoving || slideIndex === n + 1) return;
 
-        slideIndex += step;
-        updateSlider(true);
+            startAutoSlide(); // 도트 클릭 시에도 타이머 리셋 👊
 
-        setTimeout(() => {
-            if (slideIndex >= realSlideCount + 1) {
-                slideIndex = 1;
-                updateSlider(false);
+            slideIndex = n + 1;
+            updateSlider(true);
+            setTimeout(() => { isMoving = false; }, 800);
+        }
+
+        // 마우스를 슬라이드 위에 올리면 멈추게 하고 싶을 때
+        slider.addEventListener('mouseenter', stopAutoSlide);
+        slider.addEventListener('mouseleave', startAutoSlide);
+
+        // 초기화
+        window.addEventListener('load', () => {
+            updateSlider(false, true);
+            startAutoSlide();
+        });
+
+        // 마우스 스크롤 고정
+        let isScrolling = false;
+
+        document.addEventListener('wheel', function(e) {
+            if (window.innerWidth <= 768)
+                return;
+
+            e.preventDefault();
+
+            if (isScrolling)
+                return;
+
+            const direction = e.deltaY > 0 ? 1 : -1;
+            const sections = document.querySelectorAll('.scroll-section');
+
+            // 현재 스크롤 위치와 바닥까지의 최대 거리 계산
+            const currentScroll = Math.ceil(window.scrollY);
+            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+
+            let currentIndex = 0;
+
+            // [중요] 바닥에 닿아있는지 먼저 확인 (푸터 인식용)
+            if (direction < 0 && currentScroll >= maxScroll - 20) {
+                // 바닥 근처에서 위로 올릴 때는 무조건 마지막 인덱스(푸터)에서 시작하도록 고정
+                currentIndex = sections.length - 1;
+            } else {
+                // 그 외의 경우 역순으로 섹션 찾기
+                const currentPos = currentScroll + (window.innerHeight / 2); // 기준점을 절반으로 변경
+                for (let i = sections.length - 1; i >= 0; i--) {
+                    if (currentPos >= sections[i].offsetTop) {
+                        currentIndex = i;
+                        break;
+                    }
+                }
             }
-            else if (slideIndex <= 0) {
-                slideIndex = realSlideCount;
-                updateSlider(false);
+
+            // 다음 인덱스 계산
+            let nextIndex = currentIndex + direction;
+
+            // 경계값 처리
+            if (nextIndex < 0) nextIndex = 0;
+            if (nextIndex >= sections.length) nextIndex = sections.length - 1;
+
+            // 같은 위치면 리턴
+            if (nextIndex === currentIndex) return;
+
+            let targetOffset = sections[nextIndex].offsetTop;
+
+            // 푸터 이동 시 바닥 보정
+            if (nextIndex === sections.length - 1) {
+                targetOffset = maxScroll;
             }
-            isMoving = false;
-        }, 800);
-    }
 
-    function currentSlide(n) {
-        if (isMoving || slideIndex === n + 1) return;
+            smoothScrollTo(targetOffset, 800);
 
-        startAutoSlide(); // 도트 클릭 시에도 타이머 리셋 👊
+        }, { passive: false });
 
-        slideIndex = n + 1;
-        updateSlider(true);
-        setTimeout(() => { isMoving = false; }, 800);
-    }
+        function smoothScrollTo(targetY, duration) {
+            isScrolling = true;
+            const startY = window.scrollY;
+            const difference = targetY - startY;
+            let startTime = null;
 
-    // 마우스를 슬라이드 위에 올리면 멈추게 하고 싶을 때
-    slider.addEventListener('mouseenter', stopAutoSlide);
-    slider.addEventListener('mouseleave', startAutoSlide);
-</script>
+            function step(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const progress = timestamp - startTime;
+                const percent = Math.min(progress / duration, 1);
+
+                const easing = t => 1 - Math.pow(1 - t, 3);
+
+                window.scrollTo(0, startY + difference * easing(percent));
+
+                if (progress < duration) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    setTimeout(() => { isScrolling = false; }, 100);
+                }
+            }
+            window.requestAnimationFrame(step);
+        }
+    </script>
 {% endblock %}

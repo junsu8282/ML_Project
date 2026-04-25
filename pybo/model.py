@@ -13,6 +13,30 @@ class User(db.Model):
     password = db.Column(db.String(100), nullable=False)  # 비밀번호
 
 
+class UserInputData(db.Model):
+    __tablename__ = 'USER_INPUT_DATA'
+
+    # name 속성을 이용해 DB의 실제 대문자 컬럼명과 매핑합니다.
+    id = db.Column('INPUT_ID', db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column('USER_ID', db.String(50), db.ForeignKey('USERS.user_id'), nullable=False)
+
+    age = db.Column('AGE', db.Integer)
+    gender = db.Column('SEX', db.String(10))
+    bmi = db.Column('HE_BMI', db.Float)
+    activity = db.Column('PA_AEROBIC', db.Float)
+
+    n_cho = db.Column('N_CHO', db.Float)
+    n_prot = db.Column('N_PROT', db.Float)
+    n_fat = db.Column('N_FAT', db.Float)
+    n_na = db.Column('N_NA', db.Float)
+    n_sugar = db.Column('N_SUGAR', db.Float)
+
+    result_type = db.Column('PREDICTED_CLUSTER', db.String(200))
+    created_at = db.Column('CREATED_AT', db.DateTime, default=db.func.now())
+
+    user = db.relationship('User', backref=db.backref('analyses', lazy=True))
+
+
 class NutritionAI:
     def __init__(self):
         # 경로 설정 (현재 파일 위치 기준)

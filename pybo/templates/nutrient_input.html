@@ -19,36 +19,39 @@
     </div>
 
     <div class="auth-card">
-        <h3>일일 영양소 섭취량</h3>
-        <p class="section-subtitle" style="font-size: 14px; color: #888; margin-top: -20px; margin-bottom: 25px;">평균적인 하루 섭취량을 입력해주세요</p>
+
+        <div class="section-header">
+            <h3>일일 영양소 섭취량</h3>
+            <p class="section-subtitle">정확한 분석을 위해 평소 하루 평균 섭취량을 입력해주세요.</p>
+        </div>
 
         <form id="nutrientForm">
 
-            <div class="input-row">
+           <div class="input-row">
                 <div class="input-group">
                     <label>탄수화물 (g)</label>
-                    <input type="number" name="carbs" placeholder="예: 250" min="0" required>
+                    <input type="number" name="carbs" value="300" placeholder="예: 250" min="0" required>
                 </div>
                 <div class="input-group">
                     <label>단백질 (g)</label>
-                    <input type="number" name="protein" placeholder="예: 80" min="0" required>
+                    <input type="number" name="protein" value="70" placeholder="예: 80" min="0" required>
                 </div>
             </div>
 
             <div class="input-row">
                 <div class="input-group">
                     <label>지방 (g)</label>
-                    <input type="number" name="fat" placeholder="예: 60" min="0" required>
+                    <input type="number" name="fat" value="50" placeholder="예: 60" min="0" required>
                 </div>
                 <div class="input-group">
                     <label>당류 (g)</label>
-                    <input type="number" name="sugar" placeholder="예: 50" min="0" required>
+                    <input type="number" name="sugar" value="30" placeholder="예: 50" min="0" required>
                 </div>
             </div>
 
             <div class="input-group">
                 <label>나트륨 (mg)</label>
-                <input type="number" name="sodium" placeholder="예: 2000" min="0" required>
+                <input type="number" name="sodium" value="2000" placeholder="예: 2000" min="0" required>
             </div>
 
             <button type="submit" class="submit-btn">분석 결과 보기</button>
