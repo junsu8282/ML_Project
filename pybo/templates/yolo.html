@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-wrapper wide">
+
+    <div class="info-header">
+        <a href="{{ url_for('main.main_page') }}" class="home-link">❮ 홈으로</a>
+        <h1>YOLO 객체 탐지</h1>
+        <p class="subtitle">이미지 또는 영상을 업로드하여 객체를 분석하세요</p>
+    </div>
+
+    <div class="auth-card">
+
+        <div class="section-header">
+            <h3>파일 업로드</h3>
+        </div>
+
+        <form action="/yolo_detect" method="POST" enctype="multipart/form-data">
+            <div class="input-group">
+                <input type="file" name="image" required>
+            </div>
+
+            <button type="submit" class="submit-btn">분석하기</button>
+        </form>
+
+        <div id="loadingText" style="display:none; margin-top:20px;">
+            <p>분석 중입니다...</p>
+        </div>
+
+        {% if data %}
+            {% if data.error %}
+                <p style="color:red;">{{ data.error }}</p>
+            {% else %}
+
+                {% if data.result_url %}
+                    <div class="section-header" style="margin-top: 30px;">
+                        <h3>분석 결과</h3>
+                    </div>
+
+                    {% if data.file_type == "video" %}
+                        <video style="max-width:100%;" controls>
+                            <source src="{{ data.result_url }}" type="video/mp4">
+                        </video>
+                    {% else %}
+                        <img src="{{ data.result_url }}" style="max-width:100%;">
+                    {% endif %}
+                {% endif %}
+
+            {% endif %}
+        {% endif %}
+
+    </div>
+</div>
+
+<div class="help-icon">?</div>
+
+<script>
+document.querySelector("form").addEventListener("submit", function() {
+    document.getElementById("loadingText").style.display = "block";
+
+    const btn = document.querySelector(".submit-btn");
+    btn.disabled = true;
+    btn.innerText = "분석 중...";
+});
+</script>
+{% endblock %}

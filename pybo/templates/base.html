@@ -45,6 +45,8 @@
                 {% endif %}
                 <a href="{{ url_for('main.info_page') if session.get('user_id') else 'javascript:openLoginModal(\'login\')' }}"
                    class="nav-start-btn">시작하기</a>
+                <a href="{{ url_for('main.yolo_page') if session.get('user_id') else 'javascript:openLoginModal(\'login\')' }}"
+                   class="nav-start-btn">객체 탐지</a>
             </div>
 
             <div class="hamburger" id="hamburger">

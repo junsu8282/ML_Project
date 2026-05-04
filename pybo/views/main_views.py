@@ -2,6 +2,8 @@ from flask import Blueprint, render_template, request, session, redirect, url_fo
 from pybo.model import db, User, UserInputData
 from pybo.predict_cluster import predict_user_persona
 from sqlalchemy import text
+import requests
+
 
 bp = Blueprint('main', __name__, url_prefix='/')
 
@@ -291,3 +293,27 @@ def get_latest_result():
 
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@bp.route("/yolo_detect", methods=["POST"])
+def yolo_detect():
+    file = request.files.get("image")
+
+    if not file:
+        return render_template("yolo.html", data=None)
+
+    try:
+        res = requests.post(
+            "http://localhost:8000/detect",
+            files={"file": (file.filename, file.stream, file.content_type)}
+        )
+        data = res.json()
+    except:
+        data = {"error": "YOLO 서버 연결 실패"}
+
+    return render_template("yolo.html", data=data)
+
+
+@bp.route("/yolo")
+def yolo_page():
+    return render_template("yolo.html", data=None)
