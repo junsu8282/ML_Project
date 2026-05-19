@@ -317,3 +317,33 @@ def yolo_detect():
 @bp.route("/yolo")
 def yolo_page():
     return render_template("yolo.html", data=None)
+
+
+@bp.route("/chat_api", methods=["POST"])
+def chat_api():
+    data = request.get_json()
+
+    try:
+        res = requests.post(
+            "http://localhost:8001/chat",
+            json={
+                "prompt": data.get("prompt"),
+                "history": data.get("history", [])
+            },
+            timeout=120
+        )
+
+        res.raise_for_status()
+
+        return jsonify(res.json())
+
+    except Exception as e:
+        return jsonify({
+            "response": "LLM 서버 연결 실패",
+            "error": str(e)
+        }), 500
+
+
+@bp.route("/chatbot")
+def chatbot_page():
+    return render_template("chatbot.html")

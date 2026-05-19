@@ -7,6 +7,8 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
+    app.config["DEBUG"] = True
+
     try:
         oracledb.init_oracle_client(lib_dir=r"C:\oraclexe\instantclient_19_25")
     except Exception as e:

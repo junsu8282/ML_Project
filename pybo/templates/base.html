@@ -47,6 +47,8 @@
                    class="nav-start-btn">시작하기</a>
                 <a href="{{ url_for('main.yolo_page') if session.get('user_id') else 'javascript:openLoginModal(\'login\')' }}"
                    class="nav-start-btn">객체 탐지</a>
+                <a href="{{ url_for('main.chatbot_page') }}"  class="nav-start-btn">
+                    C# Deep Tutor</a>
             </div>
 
             <div class="hamburger" id="hamburger">

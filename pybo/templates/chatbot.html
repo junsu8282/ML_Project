@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-wrapper wide">
+
+    <div class="info-header">
+        <a href="{{ url_for('main.main_page') }}" class="home-link">❮ 홈으로</a>
+        <h1>C# Deep Tutor</h1>
+        <p class="subtitle">C# 자료구조와 실무 관점의 질문을 입력해보세요</p>
+    </div>
+
+    <div class="auth-card chat-card">
+
+        <div id="chat-box" class="chat-box">
+            <div id="empty-state" class="empty-state">
+                <h2>무엇을 도와드릴까요?</h2>
+                <p>예: Dictionary와 HashSet의 차이를 실무 관점에서 설명해줘.</p>
+            </div>
+        </div>
+
+        <div class="input-group chat-input-area">
+            <textarea
+                id="prompt"
+                rows="1"
+                placeholder="C# 자료구조에 대해 질문하세요..."
+                oninput="autoResize(this)"
+                onkeydown="handleEnter(event)"
+            ></textarea>
+
+            <button id="send-btn" class="submit-btn chat-send-btn" onclick="sendQuestion()">
+                질문하기
+            </button>
+        </div>
+
+        <p class="chat-notice">
+            AI 답변은 부정확할 수 있으므로 중요한 내용은 직접 검증하세요.
+        </p>
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let chatHistory = [];
+
+function autoResize(textarea) {
+    textarea.style.height = "auto";
+    textarea.style.height = textarea.scrollHeight + "px";
+}
+
+function handleEnter(event) {
+    if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendQuestion();
+    }
+}
+
+function appendMessage(role, content) {
+    const chatBox = document.getElementById("chat-box");
+    const emptyState = document.getElementById("empty-state");
+
+    if (emptyState) {
+        emptyState.style.display = "none";
+    }
+
+    const row = document.createElement("div");
+    row.className = `message-row ${role}`;
+
+    const avatar = document.createElement("div");
+    avatar.className = `avatar ${role}`;
+    avatar.innerText = role === "user" ? "U" : "AI";
+
+    const contentBox = document.createElement("div");
+    contentBox.className = "message-content";
+    contentBox.innerText = content;
+
+    row.appendChild(avatar);
+    row.appendChild(contentBox);
+
+    chatBox.appendChild(row);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    return contentBox;
+}
+
+async function sendQuestion() {
+    const textarea = document.getElementById("prompt");
+    const sendBtn = document.getElementById("send-btn");
+
+    const prompt = textarea.value.trim();
+
+    if (!prompt) return;
+
+    appendMessage("user", prompt);
+
+    chatHistory.push({
+        role: "user",
+        content: prompt
+    });
+
+    textarea.value = "";
+    textarea.style.height = "auto";
+
+    sendBtn.disabled = true;
+
+    const loadingBox = appendMessage("assistant", "답변 생성 중...");
+
+    try {
+        const response = await fetch("/chat_api", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                prompt: prompt,
+                history: chatHistory
+            })
+        });
+
+        const data = await response.json();
+
+        loadingBox.innerText = data.response;
+
+        chatHistory.push({
+            role: "assistant",
+            content: data.response
+        });
+
+    } catch (error) {
+        console.error(error);
+        loadingBox.innerText = "서버 연결 중 오류가 발생했습니다.";
+    } finally {
+        sendBtn.disabled = false;
+        textarea.focus();
+    }
+}
+</script>
+
+<style>
+.chat-card {
+    max-width: 1200px;
+    min-height: 650px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-box {
+    flex: 1;
+    min-height: 480px;
+    max-height: 62vh;
+    overflow-y: auto;
+    padding: 20px;
+    border: 1px solid #eeeeee;
+    border-radius: 14px;
+    background: #fafafa;
+    margin-bottom: 20px;
+}
+
+.empty-state {
+    height: 420px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #333;
+    text-align: center;
+}
+
+.empty-state h2 {
+    font-size: 28px;
+    margin-bottom: 12px;
+}
+
+.empty-state p {
+    color: #777;
+}
+
+.message-row {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.message-row.user {
+    justify-content: flex-end;
+}
+
+.message-row.assistant {
+    justify-content: flex-start;
+}
+
+.avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.avatar.user {
+    background: #4f8cff;
+    color: white;
+    order: 2;
+}
+
+.avatar.assistant {
+    background: #10a37f;
+    color: white;
+}
+
+.message-content {
+    max-width: 78%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    line-height: 1.7;
+    font-size: 15px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.message-row.user .message-content {
+    background: #4f8cff;
+    color: white;
+    border-top-right-radius: 4px;
+}
+
+.message-row.assistant .message-content {
+    background: white;
+    color: #222;
+    border: 1px solid #e8e8e8;
+    border-top-left-radius: 4px;
+}
+
+.chat-input-area {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    margin-bottom: 0;
+}
+
+.chat-input-area textarea {
+    flex: 1;
+    resize: none;
+    min-height: 52px;
+    max-height: 160px;
+    padding: 15px;
+    border-radius: 12px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.chat-send-btn {
+    width: 120px;
+    height: 52px;
+    margin-top: 0;
+}
+
+.chat-send-btn:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+}
+
+.chat-notice {
+    margin-top: 12px;
+    text-align: center;
+    font-size: 12px;
+    color: #888;
+}
+</style>
+{% endblock %}
