@@ -41,7 +41,7 @@
                             {% if session.get('user_id') %}
                                 <a href="{{ url_for('main.info_page') }}" class="cta-btn main-cta">분석 시작하기</a>
                             {% else %}
-                                <a href="javascript:void(0)" class="cta-btn main-cta" onclick="openLoginModal('login')">분석 시작하기</a>
+                                <a href="{{ url_for('main.info_page') }}" class="cta-btn main-cta">분석 시작하기</a>
                             {% endif %}
                         </div>
                     </div>
@@ -54,7 +54,7 @@
                             {% if session.get('user_id') %}
                                 <a href="{{ url_for('main.info_page') }}" class="cta-btn main-cta">영양 분석 체험</a>
                             {% else %}
-                                <a href="javascript:void(0)" class="cta-btn main-cta" onclick="openLoginModal('login')">영양 분석 체험</a>
+                                <a href="{{ url_for('main.info_page') }}" class="cta-btn main-cta">영양 분석 체험</a>
                             {% endif %}
                         </div>
                     </div>
@@ -67,7 +67,7 @@
                             {% if session.get('user_id') %}
                                 <a href="{{ url_for('main.info_page') }}" class="cta-btn main-cta">가이드 받기</a>
                             {% else %}
-                                <a href="javascript:void(0)" class="cta-btn main-cta" onclick="openLoginModal('login')">가이드 받기</a>
+                                <a href="{{ url_for('main.info_page') }}" class="cta-btn main-cta">가이드 받기</a>
                             {% endif %}
                         </div>
                     </div>

@@ -39,16 +39,17 @@
                             <a href="{{ url_for('main.logout') }}" class="dropdown-logout">로그아웃</a>
                         </div>
                     </div>
-                {% else %}
-                    <a href="javascript:void(0)" class="nav-login-btn" onclick="openLoginModal('login');">로그인</a>
-                    <a href="javascript:void(0)" class="nav-login-btn" onclick="openLoginModal('register');">회원가입</a>
                 {% endif %}
-                <a href="{{ url_for('main.info_page') if session.get('user_id') else 'javascript:openLoginModal(\'login\')' }}"
-                   class="nav-start-btn">시작하기</a>
-                <a href="{{ url_for('main.yolo_page') if session.get('user_id') else 'javascript:openLoginModal(\'login\')' }}"
-                   class="nav-start-btn">객체 탐지</a>
+                <a href="{{ url_for('main.info_page') }}"
+                   class="nav-start-btn">ML Project</a>
+                <a href="{{ url_for('main.yolo_page') }}"
+                   class="nav-start-btn">Vision Project</a>
                 <a href="{{ url_for('main.chatbot_page') }}"  class="nav-start-btn">
-                    C# Deep Tutor</a>
+                    LLM Project</a>
+                {% if not session.get('user_id') %}
+                  <a href="javascript:void(0)" class="nav-login-btn" onclick="openLoginModal('login');">로그인</a>
+                  <a href="javascript:void(0)" class="nav-login-btn" onclick="openLoginModal('register');">회원가입</a>
+                {% endif %}
             </div>
 
             <div class="hamburger" id="hamburger">

@@ -117,9 +117,6 @@ def nutrient_page():
 @bp.route('/info')
 def info_page():
     # 세션 체크: 로그인 안 한 사용자가 주소창에 /info 쳐서 들어오는 것 방지
-    if 'user_id' not in session:
-        return redirect(url_for('main.main_page'))
-
     # 신체 정보 입력 페이지 보여주기
     return render_template('info_input.html')
 
